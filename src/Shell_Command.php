@@ -49,6 +49,3 @@ class Shell_Command extends \WP_CLI_Command {
 		}
 	}
 }
-
-\WP_CLI::add_command( 'shell', 'Shell_Command' );
-
