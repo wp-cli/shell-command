@@ -21,7 +21,9 @@
             "": "src/",
             "WP_CLI\\": "src/WP_CLI"
         },
-        "files": [ "shell-command.php" ]
+        "files": [
+            "shell-command.php"
+        ]
     },
     "require": {
         "wp-cli/wp-cli": "*"
@@ -35,6 +37,7 @@
         },
         "commands": [
             "shell"
-        ]
+        ],
+        "bundled": true
     }
 }
