@@ -1,7 +1,7 @@
 wp-cli/shell-command
 ====================
 
-Interactive PHP console.
+Opens an interactive PHP console for running and testing PHP code.
 
 [![Build Status](https://travis-ci.org/wp-cli/shell-command.svg?branch=master)](https://travis-ci.org/wp-cli/shell-command)
 
