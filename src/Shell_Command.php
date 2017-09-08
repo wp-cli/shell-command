@@ -3,7 +3,7 @@
 class Shell_Command extends \WP_CLI_Command {
 
 	/**
-	 * Interactive PHP console.
+	 * Opens an interactive PHP console for running and testing PHP code.
 	 *
 	 * `wp shell` allows you to evaluate PHP statements and expressions
 	 * interactively, from within a WordPress environment. Type a bit of code,
