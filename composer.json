@@ -1,6 +1,6 @@
 {
     "name": "wp-cli/shell-command",
-    "description": "Interactive PHP console.",
+    "description": "Opens an interactive PHP console for running and testing PHP code.",
     "type": "wp-cli-package",
     "homepage": "https://github.com/wp-cli/shell-command",
     "support": {
