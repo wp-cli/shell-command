@@ -14,7 +14,8 @@ class Shell_Command extends \WP_CLI_Command {
 	 * ## OPTIONS
 	 *
 	 * [--basic]
-	 * : Start in fail-safe mode, even if Boris is available.
+	 * : Force the use of WP-CLI's built-in PHP REPL, even if the Boris or
+	 * PsySH PHP REPLs are available.
 	 *
 	 * ## EXAMPLES
 	 *
