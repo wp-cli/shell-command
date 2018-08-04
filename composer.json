@@ -1,11 +1,8 @@
 {
     "name": "wp-cli/shell-command",
-    "description": "Opens an interactive PHP console for running and testing PHP code.",
     "type": "wp-cli-package",
+    "description": "Opens an interactive PHP console for running and testing PHP code.",
     "homepage": "https://github.com/wp-cli/shell-command",
-    "support": {
-        "issues": "https://github.com/wp-cli/shell-command/issues"
-    },
     "license": "MIT",
     "authors": [
         {
@@ -14,8 +11,25 @@
             "homepage": "https://runcommand.io"
         }
     ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
+    "require": {
+        "wp-cli/wp-cli": "^2"
+    },
+    "require-dev": {
+        "wp-cli/wp-cli-tests": "^0"
+    },
+    "config": {
+        "sort-packages": true,
+        "process-timeout": 7200
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.x-dev"
+        },
+        "bundled": true,
+        "commands": [
+            "shell"
+        ]
+    },
     "autoload": {
         "psr-4": {
             "": "src/",
@@ -25,19 +39,22 @@
             "shell-command.php"
         ]
     },
-    "require": {
-        "wp-cli/wp-cli": "*"
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "behat": "run-behat-tests",
+        "lint": "run-linter-tests",
+        "phpcs": "run-phpcs-tests",
+        "phpunit": "run-php-unit-tests",
+        "prepare-tests": "install-package-tests",
+        "test": [
+            "@lint",
+            "@phpcs",
+            "@phpunit",
+            "@behat"
+        ]
     },
-    "require-dev": {
-        "behat/behat": "~2.5"
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.x-dev"
-        },
-        "commands": [
-            "shell"
-        ],
-        "bundled": true
+    "support": {
+        "issues": "https://github.com/wp-cli/shell-command/issues"
     }
 }
