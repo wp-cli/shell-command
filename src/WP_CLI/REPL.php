@@ -91,6 +91,11 @@ class REPL {
 	private static function create_prompt_cmd( $prompt, $history_path ) {
 		$prompt = escapeshellarg( $prompt );
 		$history_path = escapeshellarg( $history_path );
+		if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
+			$bash_path = escapeshellarg(getenv( 'WP_CLI_CUSTOM_SHELL' ));
+		} else {
+			$bash_path = '/bin/bash';
+		}
 
 		$cmd = "set -f; "
 			. "history -r $history_path; "
@@ -101,7 +106,7 @@ class REPL {
 			. "history -w $history_path; "
 			. "echo \$LINE; ";
 
-		return '/bin/bash -c ' . escapeshellarg( $cmd );
+		return $bash_path . ' -c ' . escapeshellarg( $cmd );
 	}
 
 	private function set_history_file() {
