@@ -65,6 +65,12 @@ class REPL {
 
 			$line = fgets( $fp );
 
+			// pclose( $fp );
+			
+			// When I use the wp shell, it often run into a dead loop.
+			// Forgot to pclose ? Or something else ?
+			// I hope you can fix this.
+
 			if ( !$line ) {
 				break;
 			}
