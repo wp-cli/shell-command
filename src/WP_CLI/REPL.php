@@ -6,6 +6,8 @@ class REPL {
 
 	private $prompt;
 
+	private $history_file;
+
 	public function __construct( $prompt ) {
 		$this->prompt = $prompt;
 
@@ -64,6 +66,8 @@ class REPL {
 			$fp = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
 
 			$line = fgets( $fp );
+
+			pclose( $fp );
 
 			if ( !$line ) {
 				break;
