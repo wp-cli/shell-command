@@ -94,7 +94,7 @@ class REPL {
 		if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
 			$shell_binary = escapeshellarg(getenv( 'WP_CLI_CUSTOM_SHELL' ));
 		} else {
-			$bash_path = '/bin/bash';
+			$shell_binary = '/bin/bash';
 		}
 
 		$cmd = "set -f; "
@@ -106,7 +106,7 @@ class REPL {
 			. "history -w $history_path; "
 			. "echo \$LINE; ";
 
-		return $bash_path . ' -c ' . escapeshellarg( $cmd );
+		return "{$shell_binary} -c " . escapeshellarg( $cmd );
 	}
 
 	private function set_history_file() {
