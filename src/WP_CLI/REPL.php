@@ -92,7 +92,7 @@ class REPL {
 		$prompt = escapeshellarg( $prompt );
 		$history_path = escapeshellarg( $history_path );
 		if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
-			$bash_path = escapeshellarg(getenv( 'WP_CLI_CUSTOM_SHELL' ));
+			$shell_binary = escapeshellarg(getenv( 'WP_CLI_CUSTOM_SHELL' ));
 		} else {
 			$bash_path = '/bin/bash';
 		}
