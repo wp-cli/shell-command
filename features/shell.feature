@@ -55,7 +55,7 @@ Feature: WordPress REPL
       Error: The shell binary '/nonsense/path' is not valid.
       """
 
-    When I try `WP_CLI_CUSTOM_SHELL=/bin/sh wp shell --basic < session`
+    When I try `WP_CLI_CUSTOM_SHELL=/bin/bash wp shell --basic < session`
     Then STDOUT should contain:
       """
       bool(true)
