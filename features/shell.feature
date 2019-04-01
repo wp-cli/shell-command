@@ -40,3 +40,24 @@ Feature: WordPress REPL
       bool(true)
       """
 
+  Scenario: Use custom shell path
+    Given a WP install
+
+    And a session file:
+      """
+      return true;
+      """
+
+    When I try `WP_CLI_CUSTOM_SHELL=/nonsense/path wp shell --basic < session`
+    Then STDOUT should be empty
+    And STDERR should contain:
+      """
+      Error: The shell binary '/nonsense/path' is not valid.
+      """
+
+    When I try `WP_CLI_CUSTOM_SHELL=/bin/sh wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      bool(true)
+      """
+    And STDERR should be empty
