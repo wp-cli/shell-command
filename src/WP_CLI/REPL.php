@@ -20,7 +20,9 @@ class REPL {
 		while ( true ) {
 			$line = $this->prompt();
 
-			if ( '' === $line ) continue;
+			if ( '' === $line ) {
+				continue;
+			}
 
 			$line = rtrim( $line, ';' ) . ';';
 
@@ -28,22 +30,23 @@ class REPL {
 				ob_start();
 				eval( $line );
 				$out = ob_get_clean();
-				if ( 0 < strlen ( $out ) ) {
+				if ( 0 < strlen( $out ) ) {
 					$out = rtrim( $out, "\n" ) . "\n";
 				}
 				fwrite( STDOUT, $out );
 			} else {
-				if ( !self::starts_with( 'return', $line ) )
+				if ( ! self::starts_with( 'return', $line ) ) {
 					$line = 'return ' . $line;
+				}
 
 				// Write directly to STDOUT, to sidestep any output buffers created by plugins
 				ob_start();
-				$evl  = eval( $line );
+				$evl = eval( $line );
 				$out = ob_get_clean();
-				if ( 0 < strlen ( $out ) ) {
+				if ( 0 < strlen( $out ) ) {
 					echo rtrim( $out, "\n" ) . "\n";
 				}
-				echo "=> ";
+				echo '=> ';
 				var_dump( $evl );
 				fwrite( STDOUT, ob_get_clean() );
 			}
@@ -51,11 +54,24 @@ class REPL {
 	}
 
 	private static function non_expressions() {
-		return implode( '|', array(
-			'echo', 'global', 'unset', 'function',
-			'while', 'for', 'foreach', 'if', 'switch',
-			'include', 'include\_once', 'require', 'require\_once'
-		) );
+		return implode(
+			'|',
+			array(
+				'echo',
+				'global',
+				'unset',
+				'function',
+				'while',
+				'for',
+				'foreach',
+				'if',
+				'switch',
+				'include',
+				'include\_once',
+				'require',
+				'require\_once',
+			)
+		);
 	}
 
 	private function prompt() {
@@ -63,7 +79,7 @@ class REPL {
 
 		$done = false;
 		do {
-			$prompt = ( !$done && $full_line !== false ) ? '--> ' : $this->prompt;
+			$prompt = ( ! $done && $full_line !== false ) ? '--> ' : $this->prompt;
 
 			$fp = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
 
@@ -71,7 +87,7 @@ class REPL {
 
 			pclose( $fp );
 
-			if ( !$line ) {
+			if ( ! $line ) {
 				break;
 			}
 
@@ -85,7 +101,7 @@ class REPL {
 
 			$full_line .= $line;
 
-		} while ( !$done );
+		} while ( ! $done );
 
 		if ( $full_line === false ) {
 			return 'exit';
@@ -95,7 +111,7 @@ class REPL {
 	}
 
 	private static function create_prompt_cmd( $prompt, $history_path ) {
-		$prompt = escapeshellarg( $prompt );
+		$prompt       = escapeshellarg( $prompt );
 		$history_path = escapeshellarg( $history_path );
 		if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
 			$shell_binary = getenv( 'WP_CLI_CUSTOM_SHELL' );
@@ -109,14 +125,14 @@ class REPL {
 
 		$shell_binary = escapeshellarg( $shell_binary );
 
-		$cmd = "set -f; "
+		$cmd = 'set -f; '
 			. "history -r $history_path; "
-			. "LINE=\"\"; "
+			. 'LINE=""; '
 			. "read -re -p $prompt LINE; "
-			. "[ $? -eq 0 ] || exit; "
-			. "history -s \"\$LINE\"; "
+			. '[ $? -eq 0 ] || exit; '
+			. 'history -s "$LINE"; '
 			. "history -w $history_path; "
-			. "echo \$LINE; ";
+			. 'echo $LINE; ';
 
 		return "{$shell_binary} -c " . escapeshellarg( $cmd );
 	}
