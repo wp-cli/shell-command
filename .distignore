@@ -11,3 +11,5 @@ features/
 utils/
 *.zip
 *.tar.gz
+phpcs.xml.dist
+phpunit.xml.dist
