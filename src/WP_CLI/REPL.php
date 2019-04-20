@@ -28,6 +28,7 @@ class REPL {
 
 			if ( self::starts_with( self::non_expressions(), $line ) ) {
 				ob_start();
+				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
 				eval( $line );
 				$out = ob_get_clean();
 				if ( 0 < strlen( $out ) ) {
@@ -41,6 +42,7 @@ class REPL {
 
 				// Write directly to STDOUT, to sidestep any output buffers created by plugins
 				ob_start();
+				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
 				$evl = eval( $line );
 				$out = ob_get_clean();
 				if ( 0 < strlen( $out ) ) {
