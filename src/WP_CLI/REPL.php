@@ -93,7 +93,7 @@ class REPL {
 
 			$line = rtrim( $line, "\n" );
 
-			if ( $line && '\\' == $line[ strlen( $line ) - 1 ] ) {
+			if ( $line && '\\' === $line[ strlen( $line ) - 1 ] ) {
 				$line = substr( $line, 0, -1 );
 			} else {
 				$done = true;
