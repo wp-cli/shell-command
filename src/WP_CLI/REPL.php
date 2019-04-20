@@ -126,12 +126,12 @@ class REPL {
 		$shell_binary = escapeshellarg( $shell_binary );
 
 		$cmd = 'set -f; '
-			. "history -r $history_path; "
+			. "history -r {$history_path}; "
 			. 'LINE=""; '
-			. "read -re -p $prompt LINE; "
+			. "read -re -p {$prompt} LINE; "
 			. '[ $? -eq 0 ] || exit; '
 			. 'history -s "$LINE"; '
-			. "history -w $history_path; "
+			. "history -w {$history_path}; "
 			. 'echo $LINE; ';
 
 		return "{$shell_binary} -c " . escapeshellarg( $cmd );
