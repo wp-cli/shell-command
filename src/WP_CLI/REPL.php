@@ -79,7 +79,7 @@ class REPL {
 
 		$done = false;
 		do {
-			$prompt = ( ! $done && $full_line !== false ) ? '--> ' : $this->prompt;
+			$prompt = ( ! $done && false !== $full_line ) ? '--> ' : $this->prompt;
 
 			$fp = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
 
@@ -103,7 +103,7 @@ class REPL {
 
 		} while ( ! $done );
 
-		if ( $full_line === false ) {
+		if ( false === $full_line ) {
 			return 'exit';
 		}
 
