@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_CLI;
+namespace WP_CLI\Shell;
 
 use WP_CLI;
 

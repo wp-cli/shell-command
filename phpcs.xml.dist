@@ -45,8 +45,8 @@
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array" extend="true">
-				<element value="WP_CLI"/><!-- Namespaces. -->
-				<element value="wpcli"/><!-- Global variables and such. -->
+				<element value="WP_CLI\Shell"/><!-- Namespaces. -->
+				<element value="wpcli_shell"/><!-- Global variables and such. -->
 			</property>
 		</properties>
 	</rule>
