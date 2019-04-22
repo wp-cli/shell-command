@@ -1,6 +1,8 @@
 <?php
 
-class Shell_Command extends \WP_CLI_Command {
+use WP_CLI\Utils;
+
+class Shell_Command extends WP_CLI_Command {
 
 	/**
 	 * Opens an interactive PHP console for running and testing PHP code.
@@ -26,13 +28,13 @@ class Shell_Command extends \WP_CLI_Command {
 	 */
 	public function __invoke( $_, $assoc_args ) {
 		$implementations = array(
-			'\\Psy\\Shell',
-			'\\Boris\\Boris',
-			'\\WP_CLI\\REPL',
+			'Psy\\Shell',
+			'Boris\\Boris',
+			'WP_CLI\\Shell\\REPL',
 		);
 
-		if ( \WP_CLI\Utils\get_flag_value( $assoc_args, 'basic' ) ) {
-			$class = '\\WP_CLI\\REPL';
+		if ( Utils\get_flag_value( $assoc_args, 'basic' ) ) {
+			$class = 'WP_CLI\\Shell\\REPL';
 		} else {
 			foreach ( $implementations as $candidate ) {
 				if ( class_exists( $candidate ) ) {
@@ -42,10 +44,10 @@ class Shell_Command extends \WP_CLI_Command {
 			}
 		}
 
-		if ( '\\Psy\\Shell' == $class ) {
-			\Psy\Shell::debug();
+		if ( 'Psy\\Shell' === $class ) {
+			Psy\Shell::debug();
 		} else {
-			$repl = new $class(  "wp> " );
+			$repl = new $class( 'wp> ' );
 			$repl->start();
 		}
 	}
