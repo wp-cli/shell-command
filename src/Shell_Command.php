@@ -45,7 +45,8 @@ class Shell_Command extends WP_CLI_Command {
 		}
 
 		if ( 'Psy\\Shell' === $class ) {
-			Psy\Shell::debug();
+			$shell = new Psy\Shell();
+			$shell->run();
 		} else {
 			$repl = new $class( 'wp> ' );
 			$repl->start();
