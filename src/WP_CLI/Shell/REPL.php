@@ -149,4 +149,3 @@ class REPL {
 		return preg_match( "/^($tokens)[\(\s]+/", $line );
 	}
 }
-
