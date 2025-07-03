@@ -17,6 +17,7 @@ class REPL {
 	}
 
 	public function start() {
+		// @phpstan-ignore while.alwaysTrue
 		while ( true ) {
 			$line = $this->prompt();
 
@@ -30,7 +31,7 @@ class REPL {
 				ob_start();
 				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
 				eval( $line );
-				$out = ob_get_clean();
+				$out = (string) ob_get_clean();
 				if ( 0 < strlen( $out ) ) {
 					$out = rtrim( $out, "\n" ) . "\n";
 				}
@@ -44,13 +45,13 @@ class REPL {
 				ob_start();
 				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
 				$evl = eval( $line );
-				$out = ob_get_clean();
+				$out = (string) ob_get_clean();
 				if ( 0 < strlen( $out ) ) {
 					echo rtrim( $out, "\n" ) . "\n";
 				}
 				echo '=> ';
 				var_dump( $evl );
-				fwrite( STDOUT, ob_get_clean() );
+				fwrite( STDOUT, (string) ob_get_clean() );
 			}
 		}
 	}
@@ -86,9 +87,11 @@ class REPL {
 
 			$fp = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
 
-			$line = fgets( $fp );
+			$line = $fp ? fgets( $fp ) : '';
 
-			pclose( $fp );
+			if ( $fp ) {
+				pclose( $fp );
+			}
 
 			if ( ! $line ) {
 				break;

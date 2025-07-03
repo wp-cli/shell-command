@@ -27,6 +27,9 @@ class Shell_Command extends WP_CLI_Command {
 	 *     => string(6) "WP-CLI"
 	 */
 	public function __invoke( $_, $assoc_args ) {
+		/**
+		 * @var array<class-string> $implementations
+		 */
 		$implementations = array(
 			'Psy\\Shell',
 			'Boris\\Boris',
@@ -43,6 +46,10 @@ class Shell_Command extends WP_CLI_Command {
 				}
 			}
 		}
+
+		/**
+		 * @var class-string $class
+		 */
 
 		if ( 'Psy\\Shell' === $class ) {
 			$shell = new Psy\Shell();
