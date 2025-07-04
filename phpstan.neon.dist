@@ -9,6 +9,7 @@ parameters:
     - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
   treatPhpDocTypesAsCertain: false
   ignoreErrors:
+    - identifier: class.notFound
     - identifier: missingType.property
     - identifier: missingType.parameter
     - identifier: missingType.return

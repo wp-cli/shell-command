@@ -83,6 +83,7 @@ class REPL {
 
 		$done = false;
 		do {
+			// @phpstan-ignore booleanNot.alwaysTrue
 			$prompt = ( ! $done && false !== $full_line ) ? '--> ' : $this->prompt;
 
 			$fp = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
