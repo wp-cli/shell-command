@@ -27,15 +27,15 @@ class Shell_Command extends WP_CLI_Command {
 	 *     => string(6) "WP-CLI"
 	 */
 	public function __invoke( $_, $assoc_args ) {
+		$class = WP_CLI\Shell\REPL::class;
+
 		$implementations = array(
-			'Psy\\Shell',
-			'Boris\\Boris',
-			'WP_CLI\\Shell\\REPL',
+			\Psy\Shell::class,
+			\Boris\Boris::class,
+			WP_CLI\Shell\REPL::class,
 		);
 
-		if ( Utils\get_flag_value( $assoc_args, 'basic' ) ) {
-			$class = 'WP_CLI\\Shell\\REPL';
-		} else {
+		if ( ! Utils\get_flag_value( $assoc_args, 'basic' ) ) {
 			foreach ( $implementations as $candidate ) {
 				if ( class_exists( $candidate ) ) {
 					$class = $candidate;
@@ -44,10 +44,17 @@ class Shell_Command extends WP_CLI_Command {
 			}
 		}
 
-		if ( 'Psy\\Shell' === $class ) {
+		/**
+		 * @var class-string $class
+		 */
+
+		if ( \Psy\Shell::class === $class ) {
 			$shell = new Psy\Shell();
 			$shell->run();
 		} else {
+			/**
+			 * @var class-string<WP_CLI\Shell\REPL> $class
+			 */
 			$repl = new $class( 'wp> ' );
 			$repl->start();
 		}
