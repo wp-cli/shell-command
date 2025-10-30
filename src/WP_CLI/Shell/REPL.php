@@ -215,8 +215,8 @@ class REPL {
 		}
 
 		if ( is_dir( $path ) ) {
-			$dir_mtime  = filemtime( $path );
-			$mtime      = false !== $dir_mtime ? $dir_mtime : 0;
+			$dir_mtime = filemtime( $path );
+			$mtime     = false !== $dir_mtime ? $dir_mtime : 0;
 
 			$iterator = new \RecursiveIteratorIterator(
 				new \RecursiveDirectoryIterator( $path, \RecursiveDirectoryIterator::SKIP_DOTS ),
