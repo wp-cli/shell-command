@@ -79,3 +79,21 @@ Feature: WordPress REPL
       """
       => int(2)
       """
+
+  Scenario: Exit shell
+    Given a WP install
+    And a session file:
+      """
+      $a = 1;
+      exit
+      """
+
+    When I run `wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      => int(1)
+      """
+    And STDOUT should not contain:
+      """
+      exit
+      """
