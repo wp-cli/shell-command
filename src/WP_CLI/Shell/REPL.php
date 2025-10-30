@@ -33,7 +33,6 @@ class REPL {
 	}
 
 	public function start() {
-		// @phpstan-ignore while.alwaysTrue
 		while ( true ) {
 			// Check for file changes if watching
 			if ( $this->watch_path && $this->has_changes() ) {
@@ -216,8 +215,8 @@ class REPL {
 		}
 
 		if ( is_dir( $path ) ) {
-			$dir_mtime = filemtime( $path );
-			$mtime = false !== $dir_mtime ? $dir_mtime : 0;
+			$dir_mtime  = filemtime( $path );
+			$mtime      = false !== $dir_mtime ? $dir_mtime : 0;
 
 			$iterator = new \RecursiveIteratorIterator(
 				new \RecursiveDirectoryIterator( $path, \RecursiveDirectoryIterator::SKIP_DOTS ),
@@ -225,6 +224,7 @@ class REPL {
 			);
 
 			foreach ( $iterator as $file ) {
+				/** @var \SplFileInfo $file */
 				$file_mtime = $file->getMTime();
 				if ( $file_mtime > $mtime ) {
 					$mtime = $file_mtime;
