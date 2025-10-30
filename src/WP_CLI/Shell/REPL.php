@@ -28,7 +28,7 @@ class REPL {
 	 * @param string $path Path to watch for changes.
 	 */
 	public function set_watch_path( $path ) {
-		$this->watch_path = $path;
+		$this->watch_path  = $path;
 		$this->watch_mtime = $this->get_recursive_mtime( $path );
 	}
 
