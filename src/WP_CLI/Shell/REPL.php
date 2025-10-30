@@ -10,6 +10,10 @@ class REPL {
 
 	private $history_file;
 
+	private $watch_path;
+
+	private $watch_mtime;
+
 	const EXIT_CODE_RESTART = 10;
 
 	public function __construct( $prompt ) {
@@ -18,13 +22,34 @@ class REPL {
 		$this->set_history_file();
 	}
 
+	/**
+	 * Set a path to watch for changes.
+	 *
+	 * @param string $path Path to watch for changes.
+	 */
+	public function set_watch_path( $path ) {
+		$this->watch_path = $path;
+		$this->watch_mtime = $this->get_recursive_mtime( $path );
+	}
+
 	public function start() {
 		// @phpstan-ignore while.alwaysTrue
 		while ( true ) {
+			// Check for file changes if watching
+			if ( $this->watch_path && $this->has_changes() ) {
+				WP_CLI::log( "Detected changes in {$this->watch_path}, restarting shell..." );
+				return self::EXIT_CODE_RESTART;
+			}
+
 			$line = $this->prompt();
 
 			if ( '' === $line ) {
 				continue;
+			}
+
+			// Check for special exit command
+			if ( 'exit' === trim( $line ) ) {
+				return 0;
 			}
 
 			// Check for special restart command
@@ -160,5 +185,53 @@ class REPL {
 
 	private static function starts_with( $tokens, $line ) {
 		return preg_match( "/^($tokens)[\(\s]+/", $line );
+	}
+
+	/**
+	 * Check if the watched path has changes.
+	 *
+	 * @return bool True if changes detected, false otherwise.
+	 */
+	private function has_changes() {
+		if ( ! $this->watch_path ) {
+			return false;
+		}
+
+		$current_mtime = $this->get_recursive_mtime( $this->watch_path );
+		return $current_mtime !== $this->watch_mtime;
+	}
+
+	/**
+	 * Get the most recent modification time for a path recursively.
+	 *
+	 * @param string $path Path to check.
+	 * @return int Most recent modification time.
+	 */
+	private function get_recursive_mtime( $path ) {
+		$mtime = 0;
+
+		if ( is_file( $path ) ) {
+			$file_mtime = filemtime( $path );
+			return false !== $file_mtime ? $file_mtime : 0;
+		}
+
+		if ( is_dir( $path ) ) {
+			$dir_mtime = filemtime( $path );
+			$mtime = false !== $dir_mtime ? $dir_mtime : 0;
+
+			$iterator = new \RecursiveIteratorIterator(
+				new \RecursiveDirectoryIterator( $path, \RecursiveDirectoryIterator::SKIP_DOTS ),
+				\RecursiveIteratorIterator::SELF_FIRST
+			);
+
+			foreach ( $iterator as $file ) {
+				$file_mtime = $file->getMTime();
+				if ( $file_mtime > $mtime ) {
+					$mtime = $file_mtime;
+				}
+			}
+		}
+
+		return $mtime;
 	}
 }
