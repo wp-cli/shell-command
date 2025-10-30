@@ -25,6 +25,12 @@ class Shell_Command extends WP_CLI_Command {
 	 *     $ wp shell
 	 *     wp> get_bloginfo( 'name' );
 	 *     => string(6) "WP-CLI"
+	 *
+	 *     # Restart the shell to reload code changes.
+	 *     $ wp shell
+	 *     wp> restart
+	 *     Restarting shell...
+	 *     wp>
 	 */
 	public function __invoke( $_, $assoc_args ) {
 		$class = WP_CLI\Shell\REPL::class;
@@ -55,8 +61,10 @@ class Shell_Command extends WP_CLI_Command {
 			/**
 			 * @var class-string<WP_CLI\Shell\REPL> $class
 			 */
-			$repl = new $class( 'wp> ' );
-			$repl->start();
+			do {
+				$repl = new $class( 'wp> ' );
+				$exit_code = $repl->start();
+			} while ( WP_CLI\Shell\REPL::EXIT_CODE_RESTART === $exit_code );
 		}
 	}
 }

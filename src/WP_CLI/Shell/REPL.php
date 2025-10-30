@@ -10,6 +10,8 @@ class REPL {
 
 	private $history_file;
 
+	const EXIT_CODE_RESTART = 10;
+
 	public function __construct( $prompt ) {
 		$this->prompt = $prompt;
 
@@ -23,6 +25,12 @@ class REPL {
 
 			if ( '' === $line ) {
 				continue;
+			}
+
+			// Check for special restart command
+			if ( 'restart' === trim( $line ) ) {
+				WP_CLI::log( 'Restarting shell...' );
+				return self::EXIT_CODE_RESTART;
 			}
 
 			$line = rtrim( $line, ';' ) . ';';

@@ -60,3 +60,22 @@ Feature: WordPress REPL
       bool(true)
       """
     And STDERR should be empty
+
+  Scenario: Restart shell
+    Given a WP install
+    And a session file:
+      """
+      $a = 1;
+      restart
+      $b = 2;
+      """
+
+    When I run `wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      Restarting shell...
+      """
+    And STDOUT should contain:
+      """
+      => int(2)
+      """
