@@ -137,7 +137,7 @@ class REPL {
 			. 'LINE=""; '
 			. "read -re -p {$prompt} LINE; "
 			. '[ $? -eq 0 ] || exit; '
-			. 'history -s "$LINE"; '
+			. 'history -s -- "$LINE"; '
 			. "history -w {$history_path}; "
 			. 'echo $LINE; ';
 
