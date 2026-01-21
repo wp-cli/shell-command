@@ -218,17 +218,28 @@ class REPL {
 			$dir_mtime = filemtime( $path );
 			$mtime     = false !== $dir_mtime ? $dir_mtime : 0;
 
-			$iterator = new \RecursiveIteratorIterator(
-				new \RecursiveDirectoryIterator( $path, \RecursiveDirectoryIterator::SKIP_DOTS ),
-				\RecursiveIteratorIterator::SELF_FIRST
-			);
+			try {
+				$iterator = new \RecursiveIteratorIterator(
+					new \RecursiveDirectoryIterator( $path, \RecursiveDirectoryIterator::SKIP_DOTS ),
+					\RecursiveIteratorIterator::SELF_FIRST
+				);
 
-			foreach ( $iterator as $file ) {
-				/** @var \SplFileInfo $file */
-				$file_mtime = $file->getMTime();
-				if ( $file_mtime > $mtime ) {
-					$mtime = $file_mtime;
+				foreach ( $iterator as $file ) {
+					/** @var \SplFileInfo $file */
+					$file_mtime = $file->getMTime();
+					if ( $file_mtime > $mtime ) {
+						$mtime = $file_mtime;
+					}
 				}
+			} catch ( \UnexpectedValueException $e ) {
+				// Handle unreadable directories/files gracefully.
+				WP_CLI::warning(
+					sprintf(
+						'Could not read path "%s" while checking for changes: %s',
+						$path,
+						$e->getMessage()
+					)
+				);
 			}
 		}
 
