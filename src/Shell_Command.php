@@ -13,6 +13,11 @@ class Shell_Command extends WP_CLI_Command {
 	 * is loaded, you have access to all the functions, classes and globals
 	 * that you can use within a WordPress plugin, for example.
 	 *
+	 * The `restart` command reloads the shell by spawning a new PHP process,
+	 * allowing modified code to be fully reloaded. Note that this requires
+	 * the `pcntl_exec()` function. If not available, the shell restarts
+	 * in-process, which resets variables but doesn't reload PHP files.
+	 *
 	 * ## OPTIONS
 	 *
 	 * [--basic]
@@ -33,7 +38,7 @@ class Shell_Command extends WP_CLI_Command {
 	 *     # Restart the shell to reload code changes.
 	 *     $ wp shell
 	 *     wp> restart
-	 *     Restarting shell...
+	 *     Restarting shell in new process...
 	 *     wp>
 	 *
 	 *     # Watch a directory for changes and auto-restart.
@@ -88,6 +93,12 @@ class Shell_Command extends WP_CLI_Command {
 					$repl->set_watch_path( $watch_path );
 				}
 				$exit_code = $repl->start();
+
+				// If restart requested, exec a new PHP process to reload all code
+				if ( WP_CLI\Shell\REPL::EXIT_CODE_RESTART === $exit_code ) {
+					$this->restart_process( $assoc_args );
+					// If restart_process() returns, pcntl_exec is not available, continue in-process
+				}
 			} while ( WP_CLI\Shell\REPL::EXIT_CODE_RESTART === $exit_code );
 		}
 	}
@@ -109,5 +120,71 @@ class Shell_Command extends WP_CLI_Command {
 		}
 
 		return $realpath;
+	}
+
+	/**
+	 * Restart the shell by spawning a new PHP process.
+	 *
+	 * This replaces the current process with a new one to fully reload all code.
+	 * Falls back to in-process restart if pcntl_exec is not available.
+	 *
+	 * @param array $assoc_args Command arguments to preserve.
+	 */
+	private function restart_process( $assoc_args ) {
+		// Check if pcntl_exec is available
+		if ( ! function_exists( 'pcntl_exec' ) ) {
+			WP_CLI::debug( 'pcntl_exec not available, falling back to in-process restart', 'shell' );
+			return;
+		}
+
+		// Build the command to restart wp shell with the same arguments
+		$php_binary = Utils\get_php_binary();
+
+		// Get the WP-CLI script path
+		$wp_cli_script = null;
+		foreach ( array( 'argv', '_SERVER' ) as $source ) {
+			if ( 'argv' === $source && isset( $GLOBALS['argv'][0] ) ) {
+				$wp_cli_script = $GLOBALS['argv'][0];
+				break;
+			} elseif ( '_SERVER' === $source && isset( $_SERVER['argv'][0] ) ) {
+				$wp_cli_script = $_SERVER['argv'][0];
+				break;
+			}
+		}
+
+		if ( ! $wp_cli_script ) {
+			WP_CLI::debug( 'Could not determine WP-CLI script path, falling back to in-process restart', 'shell' );
+			return;
+		}
+
+		// Build arguments array
+		$args = array( $php_binary, $wp_cli_script, 'shell' );
+
+		if ( Utils\get_flag_value( $assoc_args, 'basic' ) ) {
+			$args[] = '--basic';
+		}
+
+		$watch_path = Utils\get_flag_value( $assoc_args, 'watch', false );
+		if ( $watch_path ) {
+			$args[] = '--watch=' . $watch_path;
+		}
+
+		// Add the path argument if present in $_SERVER
+		if ( isset( $_SERVER['argv'] ) ) {
+			foreach ( $_SERVER['argv'] as $arg ) {
+				if ( '--path=' === substr( $arg, 0, 7 ) ) {
+					$args[] = $arg;
+				}
+			}
+		}
+
+		WP_CLI::log( 'Restarting shell in new process...' );
+
+		// Replace the current process with a new one
+		// Note: pcntl_exec does not return on success
+		pcntl_exec( $php_binary, array_slice( $args, 1 ) );
+
+		// If we reach here, exec failed
+		WP_CLI::warning( 'Failed to restart process, falling back to in-process restart' );
 	}
 }
