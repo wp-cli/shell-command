@@ -60,3 +60,20 @@ Feature: WordPress REPL
       bool(true)
       """
     And STDERR should be empty
+
+  Scenario: Input starting with dash
+    Given a WP install
+    And a session file:
+      """
+      -1
+      """
+
+    When I run `wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      int(-1)
+      """
+    And STDERR should not contain:
+      """
+      history: -1: invalid option
+      """
