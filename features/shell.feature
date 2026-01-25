@@ -77,3 +77,21 @@ Feature: WordPress REPL
       """
       history: -1: invalid option
       """
+
+  Scenario: User can define variable named $line
+    Given a WP install
+    And a session file:
+      """
+      $line = 'this should work';
+      $line;
+      """
+
+    When I run `wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      => string(16) "this should work"
+      """
+    And STDOUT should contain:
+      """
+      => string(16) "this should work"
+      """
