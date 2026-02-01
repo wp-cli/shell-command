@@ -122,6 +122,8 @@ class REPL {
 		$history_path = escapeshellarg( $history_path );
 		if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
 			$shell_binary = getenv( 'WP_CLI_CUSTOM_SHELL' );
+		} elseif ( getenv( 'SHELL' ) ) {
+			$shell_binary = getenv( 'SHELL' );
 		} else {
 			$shell_binary = '/bin/bash';
 		}
