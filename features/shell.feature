@@ -77,3 +77,29 @@ Feature: WordPress REPL
       """
       history: -1: invalid option
       """
+
+  Scenario: Shell with hook parameter
+    Given a WP install
+    And a session file:
+      """
+      did_action('init');
+      """
+
+    When I run `wp shell --basic --hook=init < session`
+    Then STDOUT should contain:
+      """
+      int(1)
+      """
+
+  Scenario: Shell with hook parameter on already-fired hook
+    Given a WP install
+    And a session file:
+      """
+      did_action('plugins_loaded');
+      """
+
+    When I run `wp shell --basic --hook=plugins_loaded < session`
+    Then STDOUT should contain:
+      """
+      int(1)
+      """
