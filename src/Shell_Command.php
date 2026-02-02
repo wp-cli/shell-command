@@ -40,24 +40,28 @@ class Shell_Command extends WP_CLI_Command {
 	public function __invoke( $_, $assoc_args ) {
 		$hook = Utils\get_flag_value( $assoc_args, 'hook', '' );
 
-		if ( $hook ) {
-			// Check if the hook has already fired.
-			if ( did_action( $hook ) ) {
-				// Hook already fired, start the shell immediately.
-				$this->start_shell( $assoc_args );
-			} else {
-				// Hook hasn't fired yet.
-				WP_CLI::error(
-					sprintf(
-						"The '%s' hook has not fired yet. The shell command runs after WordPress is loaded, so only hooks that have already been triggered can be used. Common hooks that are available include: init, plugins_loaded, wp_loaded.",
-						$hook
-					)
-				);
-			}
-		} else {
-			// No hook specified, start immediately.
+		// No hook specified, start immediately.
+		if ( ! $hook ) {
 			$this->start_shell( $assoc_args );
+			return;
 		}
+
+		// Check if the hook has already fired.
+		if ( did_action( $hook ) ) {
+			// Hook already fired, start the shell immediately.
+			$this->start_shell( $assoc_args );
+			return;
+		}
+
+		// Hook hasn't fired yet.
+		WP_CLI::error(
+			sprintf(
+				"The '%s' hook has not fired yet. " .
+				'The shell command runs after WordPress is loaded, so only hooks that have already been triggered can be used. ' .
+				'Common hooks that are available include: init, plugins_loaded, wp_loaded.',
+				$hook
+			)
+		);
 	}
 
 	/**
