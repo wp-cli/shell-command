@@ -20,7 +20,9 @@ class Shell_Command extends WP_CLI_Command {
 	 * PsySH PHP REPLs are available.
 	 *
 	 * [--hook=<hook>]
-	 * : Attach the shell to a specific WordPress action or filter hook.
+	 * : Ensure that a specific WordPress action hook has fired before starting the shell.
+	 * This validates that the preconditions associated with that hook are met.
+	 * Only hooks that have already been triggered can be used (e.g., init, plugins_loaded, wp_loaded).
 	 * ---
 	 * default: ''
 	 * ---
@@ -32,18 +34,13 @@ class Shell_Command extends WP_CLI_Command {
 	 *     wp> get_bloginfo( 'name' );
 	 *     => string(6) "WP-CLI"
 	 *
-	 *     # Start a shell after the 'init' action has fired.
+	 *     # Start a shell, ensuring the 'init' hook has already fired.
 	 *     $ wp shell --hook=init
 	 */
 	public function __invoke( $_, $assoc_args ) {
 		$hook = Utils\get_flag_value( $assoc_args, 'hook', '' );
 
 		if ( $hook ) {
-			// Validate hook parameter.
-			if ( ! is_string( $hook ) || '' === trim( $hook ) ) {
-				WP_CLI::error( 'The --hook parameter must be a non-empty string.' );
-			}
-
 			// Check if the hook has already fired.
 			if ( did_action( $hook ) ) {
 				// Hook already fired, start the shell immediately.
@@ -52,7 +49,7 @@ class Shell_Command extends WP_CLI_Command {
 				// Hook hasn't fired yet.
 				WP_CLI::error(
 					sprintf(
-						"The '%s' hook has not fired yet. The shell command runs after WordPress is loaded, so only hooks that have already been triggered can be used. Common hooks that are available include: init, plugins_loaded, wp_loaded, admin_init.",
+						"The '%s' hook has not fired yet. The shell command runs after WordPress is loaded, so only hooks that have already been triggered can be used. Common hooks that are available include: init, plugins_loaded, wp_loaded.",
 						$hook
 					)
 				);
