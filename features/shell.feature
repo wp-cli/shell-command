@@ -91,7 +91,7 @@ Feature: WordPress REPL
       int(1)
       """
 
-  Scenario: Shell with hook parameter on already-fired hook
+  Scenario: Shell with hook parameter using plugins_loaded hook
     Given a WP install
     And a session file:
       """
@@ -103,3 +103,13 @@ Feature: WordPress REPL
       """
       int(1)
       """
+
+  Scenario: Shell with hook parameter for hook that hasn't fired
+    Given a WP install
+
+    When I try `wp shell --basic --hook=shutdown < /dev/null`
+    Then STDERR should contain:
+      """
+      Error: The 'shutdown' hook has not fired yet
+      """
+    And the return code should be 1

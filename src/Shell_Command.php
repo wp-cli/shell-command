@@ -39,29 +39,23 @@ class Shell_Command extends WP_CLI_Command {
 		$hook = Utils\get_flag_value( $assoc_args, 'hook', '' );
 
 		if ( $hook ) {
+			// Validate hook parameter.
+			if ( ! is_string( $hook ) || '' === trim( $hook ) ) {
+				WP_CLI::error( 'The --hook parameter must be a non-empty string.' );
+			}
+
 			// Check if the hook has already fired.
 			if ( did_action( $hook ) ) {
 				// Hook already fired, start the shell immediately.
 				$this->start_shell( $assoc_args );
 			} else {
-				// Hook hasn't fired yet. We need to attach a callback and let WordPress continue.
-				// Since shell is interactive and blocks execution, we'll attach the callback
-				// and let it start when the hook fires naturally.
-				$shell_started = false;
-				add_action(
-					$hook,
-					function () use ( $assoc_args, &$shell_started ) {
-						if ( ! $shell_started ) {
-							$shell_started = true;
-							$this->start_shell( $assoc_args );
-						}
-					},
-					10
+				// Hook hasn't fired yet.
+				WP_CLI::error(
+					sprintf(
+						"The '%s' hook has not fired yet. The shell command runs after WordPress is loaded, so only hooks that have already been triggered can be used. Common hooks that are available include: init, plugins_loaded, wp_loaded, admin_init.",
+						$hook
+					)
 				);
-				// Note: The shell will start when the hook fires during WordPress lifecycle.
-				// Since commands typically run after WordPress is loaded, most common hooks
-				// will have already fired. For hooks that haven't fired yet, the shell will
-				// start when they do fire.
 			}
 		} else {
 			// No hook specified, start immediately.
