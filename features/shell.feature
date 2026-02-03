@@ -77,11 +77,11 @@ Feature: WordPress REPL
     And STDERR should be empty
 
     When I try `SHELL=/nonsense/path wp shell --basic < session`
-    Then STDOUT should be empty
-    And STDERR should contain:
+    Then STDOUT should contain:
       """
-      Error: The shell binary '/nonsense/path' is not valid.
+      bool(true)
       """
+    And STDERR should be empty
 
   Scenario: Input starting with dash
     Given a WP install
