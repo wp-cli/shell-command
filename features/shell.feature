@@ -61,7 +61,7 @@ Feature: WordPress REPL
       """
     And STDERR should be empty
 
-  Scenario: Use SHELL environment variable as fallback
+  Scenario: Use SHELL environment variable as fallback for bash
     Given a WP install
 
     And a session file:
@@ -69,6 +69,7 @@ Feature: WordPress REPL
       return true;
       """
 
+    # SHELL pointing to bash should work (when bash is available).
     When I try `SHELL=/bin/bash wp shell --basic < session`
     Then STDOUT should contain:
       """
@@ -76,6 +77,15 @@ Feature: WordPress REPL
       """
     And STDERR should be empty
 
+    # SHELL pointing to non-bash shell should be ignored and fall back to /bin/bash.
+    When I try `SHELL=/bin/zsh wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      bool(true)
+      """
+    And STDERR should be empty
+
+    # SHELL pointing to invalid path should be ignored and fall back to /bin/bash.
     When I try `SHELL=/nonsense/path wp shell --basic < session`
     Then STDOUT should contain:
       """

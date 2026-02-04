@@ -122,10 +122,15 @@ class REPL {
 		$history_path = escapeshellarg( $history_path );
 		if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
 			$shell_binary = getenv( 'WP_CLI_CUSTOM_SHELL' );
-		} elseif ( getenv( 'SHELL' ) ) {
+		} elseif ( is_file( '/bin/bash' ) && is_readable( '/bin/bash' ) ) {
+			// Prefer /bin/bash when available since we use bash-specific commands.
+			$shell_binary = '/bin/bash';
+		} elseif ( getenv( 'SHELL' ) && self::is_bash_shell( getenv( 'SHELL' ) ) ) {
+			// Only use SHELL as fallback if it's bash (we use bash-specific commands).
 			$shell_binary = getenv( 'SHELL' );
 		} else {
-			$shell_binary = '/bin/bash';
+			// Final fallback for systems without /bin/bash.
+			$shell_binary = 'bash';
 		}
 
 		if ( ! is_file( $shell_binary ) || ! is_readable( $shell_binary ) ) {
@@ -144,6 +149,20 @@ class REPL {
 			. 'echo $LINE; ';
 
 		return "{$shell_binary} -c " . escapeshellarg( $cmd );
+	}
+
+	/**
+	 * Check if a shell binary is bash or bash-compatible.
+	 *
+	 * @param string $shell_path Path to the shell binary.
+	 * @return bool True if the shell is bash, false otherwise.
+	 */
+	private static function is_bash_shell( $shell_path ) {
+		if ( ! is_file( $shell_path ) || ! is_readable( $shell_path ) ) {
+			return false;
+		}
+		// Check if the basename contains 'bash'.
+		return false !== strpos( basename( $shell_path ), 'bash' );
 	}
 
 	private function set_history_file() {
