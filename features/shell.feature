@@ -113,5 +113,5 @@ Feature: WordPress REPL
       """
     And STDERR should contain:
       """
-      Call to undefined function nonexistent_function()
+      Error: Call to undefined function nonexistent_function()
       """
