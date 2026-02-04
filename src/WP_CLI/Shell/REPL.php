@@ -161,8 +161,9 @@ class REPL {
 		if ( ! is_file( $shell_path ) || ! is_readable( $shell_path ) ) {
 			return false;
 		}
-		// Check if the basename contains 'bash'.
-		return false !== strpos( basename( $shell_path ), 'bash' );
+		// Check if the basename is exactly 'bash' or starts with 'bash' followed by a version/variant.
+		$basename = basename( $shell_path );
+		return 'bash' === $basename || 0 === strpos( $basename, 'bash-' );
 	}
 
 	private function set_history_file() {

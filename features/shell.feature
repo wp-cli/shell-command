@@ -77,8 +77,8 @@ Feature: WordPress REPL
       """
     And STDERR should be empty
 
-    # SHELL pointing to non-bash shell should be ignored and fall back to /bin/bash.
-    When I try `SHELL=/bin/zsh wp shell --basic < session`
+    # SHELL pointing to non-bash binary should be ignored and fall back to /bin/bash.
+    When I try `SHELL=/bin/sh wp shell --basic < session`
     Then STDOUT should contain:
       """
       bool(true)
