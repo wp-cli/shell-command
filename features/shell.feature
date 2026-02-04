@@ -77,3 +77,41 @@ Feature: WordPress REPL
       """
       history: -1: invalid option
       """
+
+  Scenario: Exception handling preserves session state
+    Given a WP install
+    And a session file:
+      """
+      $foo = 'test_value';
+      require 'nonexistent_file.txt';
+      echo $foo;
+      """
+
+    When I run `wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      test_value
+      """
+    And STDERR should contain:
+      """
+      Error: Failed opening required 'nonexistent_file.txt'
+      """
+
+  Scenario: Exception handling for expression errors
+    Given a WP install
+    And a session file:
+      """
+      $bar = 'preserved';
+      nonexistent_function();
+      $bar;
+      """
+
+    When I run `wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      string(9) "preserved"
+      """
+    And STDERR should contain:
+      """
+      Call to undefined function nonexistent_function()
+      """

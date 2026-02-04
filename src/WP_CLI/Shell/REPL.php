@@ -29,8 +29,13 @@ class REPL {
 
 			if ( self::starts_with( self::non_expressions(), $line ) ) {
 				ob_start();
-				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
-				eval( $line );
+				try {
+					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
+					eval( $line );
+				} catch ( \Throwable $e ) {
+					// Display the error message but continue the session
+					fwrite( STDERR, $e . "\n" );
+				}
 				$out = (string) ob_get_clean();
 				if ( 0 < strlen( $out ) ) {
 					$out = rtrim( $out, "\n" ) . "\n";
@@ -43,8 +48,14 @@ class REPL {
 
 				// Write directly to STDOUT, to sidestep any output buffers created by plugins
 				ob_start();
-				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
-				$evl = eval( $line );
+				try {
+					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
+					$evl = eval( $line );
+				} catch ( \Throwable $e ) {
+					// Display the error message but continue the session
+					fwrite( STDERR, $e . "\n" );
+					$evl = null;
+				}
 				$out = (string) ob_get_clean();
 				if ( 0 < strlen( $out ) ) {
 					echo rtrim( $out, "\n" ) . "\n";
