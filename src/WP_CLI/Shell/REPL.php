@@ -34,7 +34,7 @@ class REPL {
 					eval( $line );
 				} catch ( \Throwable $e ) {
 					// Display the error message but continue the session
-					fwrite( STDERR, $e . "\n" );
+					fwrite( STDERR, get_class( $e ) . ': ' . $e->getMessage() . "\n" );
 				}
 				$out = (string) ob_get_clean();
 				if ( 0 < strlen( $out ) ) {
@@ -53,7 +53,7 @@ class REPL {
 					$evl = eval( $line );
 				} catch ( \Throwable $e ) {
 					// Display the error message but continue the session
-					fwrite( STDERR, $e . "\n" );
+					fwrite( STDERR, get_class( $e ) . ': ' . $e->getMessage() . "\n" );
 					$evl = null;
 				}
 				$out = (string) ob_get_clean();
