@@ -87,7 +87,7 @@ Feature: WordPress REPL
       echo $foo;
       """
 
-    When I run `wp shell --basic < session`
+    When I try `wp shell --basic < session`
     Then STDOUT should contain:
       """
       test_value
@@ -106,7 +106,7 @@ Feature: WordPress REPL
       $bar;
       """
 
-    When I run `wp shell --basic < session`
+    When I try `wp shell --basic < session`
     Then STDOUT should contain:
       """
       string(9) "preserved"
