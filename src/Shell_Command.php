@@ -46,6 +46,9 @@ class Shell_Command extends WP_CLI_Command {
 	 *     wp> // Make changes to files in the plugin directory
 	 *     Detected changes in wp-content/plugins/my-plugin, restarting shell...
 	 *     wp>
+	 *
+	 * @param string[] $_ Positional arguments. Unused.
+	 * @param array{basic?: bool, watch?: string} $assoc_args Associative arguments.
 	 */
 	public function __invoke( $_, $assoc_args ) {
 		$watch_path = Utils\get_flag_value( $assoc_args, 'watch', false );
@@ -107,7 +110,7 @@ class Shell_Command extends WP_CLI_Command {
 	 * Resolve and validate the watch path.
 	 *
 	 * @param string $path Path to watch.
-	 * @return string Absolute path to watch.
+	 * @return string|never Absolute path to watch.
 	 */
 	private function resolve_watch_path( $path ) {
 		if ( ! file_exists( $path ) ) {
@@ -128,7 +131,7 @@ class Shell_Command extends WP_CLI_Command {
 	 * This replaces the current process with a new one to fully reload all code.
 	 * Falls back to in-process restart if pcntl_exec is not available.
 	 *
-	 * @param array $assoc_args Command arguments to preserve.
+	 * @param array{basic?: bool, watch?: string} $assoc_args Command arguments to preserve.
 	 */
 	private function restart_process( $assoc_args ) {
 		// Check if pcntl_exec is available
@@ -143,10 +146,10 @@ class Shell_Command extends WP_CLI_Command {
 		// Get the WP-CLI script path
 		$wp_cli_script = null;
 		foreach ( array( 'argv', '_SERVER' ) as $source ) {
-			if ( 'argv' === $source && isset( $GLOBALS['argv'][0] ) ) {
+			if ( 'argv' === $source && is_array( $GLOBALS['argv'] ) && isset( $GLOBALS['argv'][0] ) ) {
 				$wp_cli_script = $GLOBALS['argv'][0];
 				break;
-			} elseif ( '_SERVER' === $source && isset( $_SERVER['argv'][0] ) ) {
+			} elseif ( '_SERVER' === $source && is_array( $_SERVER['argv'] ) && isset( $_SERVER['argv'][0] ) ) {
 				$wp_cli_script = $_SERVER['argv'][0];
 				break;
 			}
@@ -170,9 +173,9 @@ class Shell_Command extends WP_CLI_Command {
 		}
 
 		// Add the path argument if present in $_SERVER
-		if ( isset( $_SERVER['argv'] ) ) {
+		if ( isset( $_SERVER['argv'] ) && is_array( $_SERVER['argv'] ) ) {
 			foreach ( $_SERVER['argv'] as $arg ) {
-				if ( '--path=' === substr( $arg, 0, 7 ) ) {
+				if ( is_string( $arg ) && '--path=' === substr( $arg, 0, 7 ) ) {
 					$args[] = $arg;
 				}
 			}
