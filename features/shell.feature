@@ -113,3 +113,49 @@ Feature: WordPress REPL
       Error: The 'shutdown' hook has not fired yet
       """
     And the return code should be 1
+
+  Scenario: Quiet mode suppresses return value output
+    Given a WP install
+    And a session file:
+      """
+      $a = "hello";
+      """
+
+    When I run `wp shell --basic --quiet < session`
+    Then STDOUT should be empty
+
+  Scenario: Quiet mode still shows echo output
+    Given a WP install
+    And a session file:
+      """
+      echo "test output";
+      """
+
+    When I run `wp shell --basic --quiet < session`
+    Then STDOUT should contain:
+      """
+      test output
+      """
+
+  Scenario: Quiet mode with expression
+    Given a WP install
+    And a session file:
+      """
+      get_bloginfo('name');
+      """
+
+    When I run `wp shell --basic --quiet < session`
+    Then STDOUT should be empty
+
+  Scenario: Normal mode shows return value
+    Given a WP install
+    And a session file:
+      """
+      $a = "hello";
+      """
+
+    When I run `wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      string(5) "hello"
+      """

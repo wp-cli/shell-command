@@ -10,8 +10,11 @@ class REPL {
 
 	private $history_file;
 
-	public function __construct( $prompt ) {
+	private $quiet;
+
+	public function __construct( $prompt, $quiet = false ) {
 		$this->prompt = $prompt;
+		$this->quiet  = $quiet;
 
 		$this->set_history_file();
 	}
@@ -49,8 +52,10 @@ class REPL {
 				if ( 0 < strlen( $out ) ) {
 					echo rtrim( $out, "\n" ) . "\n";
 				}
-				echo '=> ';
-				var_dump( $evl );
+				if ( ! $this->quiet ) {
+					echo '=> ';
+					var_dump( $evl );
+				}
 				fwrite( STDOUT, (string) ob_get_clean() );
 			}
 		}
