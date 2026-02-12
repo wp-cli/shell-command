@@ -76,7 +76,7 @@ class Shell_Command extends WP_CLI_Command {
 	 */
 	private function start_shell( $assoc_args ) {
 		$class = WP_CLI\Shell\REPL::class;
-		$quiet = WP_CLI::get_config( 'quiet' );
+		$quiet = (bool) WP_CLI::get_config( 'quiet' );
 
 		$implementations = array(
 			\Psy\Shell::class,
