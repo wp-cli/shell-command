@@ -19,38 +19,38 @@ class REPL {
 	public function start() {
 		// @phpstan-ignore while.alwaysTrue
 		while ( true ) {
-			$line = $this->prompt();
+			$__repl_input_line = $this->prompt();
 
-			if ( '' === $line ) {
+			if ( '' === $__repl_input_line ) {
 				continue;
 			}
 
-			$line = rtrim( $line, ';' ) . ';';
+			$__repl_input_line = rtrim( $__repl_input_line, ';' ) . ';';
 
-			if ( self::starts_with( self::non_expressions(), $line ) ) {
+			if ( self::starts_with( self::non_expressions(), $__repl_input_line ) ) {
 				ob_start();
 				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
-				eval( $line );
-				$out = (string) ob_get_clean();
-				if ( 0 < strlen( $out ) ) {
-					$out = rtrim( $out, "\n" ) . "\n";
+				eval( $__repl_input_line );
+				$__repl_output = (string) ob_get_clean();
+				if ( 0 < strlen( $__repl_output ) ) {
+					$__repl_output = rtrim( $__repl_output, "\n" ) . "\n";
 				}
-				fwrite( STDOUT, $out );
+				fwrite( STDOUT, $__repl_output );
 			} else {
-				if ( ! self::starts_with( 'return', $line ) ) {
-					$line = 'return ' . $line;
+				if ( ! self::starts_with( 'return', $__repl_input_line ) ) {
+					$__repl_input_line = 'return ' . $__repl_input_line;
 				}
 
 				// Write directly to STDOUT, to sidestep any output buffers created by plugins
 				ob_start();
 				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
-				$evl = eval( $line );
-				$out = (string) ob_get_clean();
-				if ( 0 < strlen( $out ) ) {
-					echo rtrim( $out, "\n" ) . "\n";
+				$__repl_eval_result = eval( $__repl_input_line );
+				$__repl_output      = (string) ob_get_clean();
+				if ( 0 < strlen( $__repl_output ) ) {
+					echo rtrim( $__repl_output, "\n" ) . "\n";
 				}
 				echo '=> ';
-				var_dump( $evl );
+				var_dump( $__repl_eval_result );
 				fwrite( STDOUT, (string) ob_get_clean() );
 			}
 		}
@@ -88,25 +88,25 @@ class REPL {
 
 			$fp = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
 
-			$line = $fp ? fgets( $fp ) : '';
+			$__repl_input_line = $fp ? fgets( $fp ) : '';
 
 			if ( $fp ) {
 				pclose( $fp );
 			}
 
-			if ( ! $line ) {
+			if ( ! $__repl_input_line ) {
 				break;
 			}
 
-			$line = rtrim( $line, "\n" );
+			$__repl_input_line = rtrim( $__repl_input_line, "\n" );
 
-			if ( $line && '\\' === $line[ strlen( $line ) - 1 ] ) {
-				$line = substr( $line, 0, -1 );
+			if ( $__repl_input_line && '\\' === $__repl_input_line[ strlen( $__repl_input_line ) - 1 ] ) {
+				$__repl_input_line = substr( $__repl_input_line, 0, -1 );
 			} else {
 				$done = true;
 			}
 
-			$full_line .= $line;
+			$full_line .= $__repl_input_line;
 
 		} while ( ! $done );
 
@@ -150,7 +150,7 @@ class REPL {
 		$this->history_file = \WP_CLI\Utils\get_temp_dir() . 'wp-cli-history-' . md5( $data );
 	}
 
-	private static function starts_with( $tokens, $line ) {
-		return preg_match( "/^($tokens)[\(\s]+/", $line );
+	private static function starts_with( $tokens, $__repl_input_line ) {
+		return preg_match( "/^($tokens)[\(\s]+/", $__repl_input_line );
 	}
 }
