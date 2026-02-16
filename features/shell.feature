@@ -109,3 +109,39 @@ Feature: WordPress REPL
       """
       history: -1: invalid option
       """
+
+  Scenario: Shell with hook parameter
+    Given a WP install
+    And a session file:
+      """
+      did_action('init');
+      """
+
+    When I run `wp shell --basic --hook=init < session`
+    Then STDOUT should contain:
+      """
+      int(1)
+      """
+
+  Scenario: Shell with hook parameter using plugins_loaded hook
+    Given a WP install
+    And a session file:
+      """
+      did_action('plugins_loaded');
+      """
+
+    When I run `wp shell --basic --hook=plugins_loaded < session`
+    Then STDOUT should contain:
+      """
+      int(1)
+      """
+
+  Scenario: Shell with hook parameter for hook that hasn't fired
+    Given a WP install
+
+    When I try `wp shell --basic --hook=shutdown < /dev/null`
+    Then STDERR should contain:
+      """
+      Error: The 'shutdown' hook has not fired yet
+      """
+    And the return code should be 1
