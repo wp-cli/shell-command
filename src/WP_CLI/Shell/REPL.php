@@ -125,7 +125,7 @@ class REPL {
 		} elseif ( is_file( '/bin/bash' ) && is_readable( '/bin/bash' ) ) {
 			// Prefer /bin/bash when available since we use bash-specific commands.
 			$shell_binary = '/bin/bash';
-		} elseif ( getenv( 'SHELL' ) && self::is_bash_shell( getenv( 'SHELL' ) ) ) {
+		} elseif ( getenv( 'SHELL' ) && self::is_bash_shell( (string) getenv( 'SHELL' ) ) ) {
 			// Only use SHELL as fallback if it's bash (we use bash-specific commands).
 			$shell_binary = (string) getenv( 'SHELL' );
 		} else {
