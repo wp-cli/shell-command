@@ -145,14 +145,10 @@ class Shell_Command extends WP_CLI_Command {
 
 		// Get the WP-CLI script path
 		$wp_cli_script = null;
-		foreach ( array( 'argv', '_SERVER' ) as $source ) {
-			if ( 'argv' === $source && is_array( $GLOBALS['argv'] ) && isset( $GLOBALS['argv'][0] ) ) {
-				$wp_cli_script = $GLOBALS['argv'][0];
-				break;
-			} elseif ( '_SERVER' === $source && is_array( $_SERVER['argv'] ) && isset( $_SERVER['argv'][0] ) ) {
-				$wp_cli_script = $_SERVER['argv'][0];
-				break;
-			}
+		if ( isset( $GLOBALS['argv'][0] ) ) {
+			$wp_cli_script = $GLOBALS['argv'][0];
+		} elseif ( isset( $_SERVER['argv'][0] ) ) {
+			$wp_cli_script = $_SERVER['argv'][0];
 		}
 
 		if ( ! $wp_cli_script ) {
@@ -172,13 +168,16 @@ class Shell_Command extends WP_CLI_Command {
 			$args[] = '--watch=' . $watch_path;
 		}
 
-		// Add the path argument if present in $_SERVER
-		if ( isset( $_SERVER['argv'] ) && is_array( $_SERVER['argv'] ) ) {
-			foreach ( $_SERVER['argv'] as $arg ) {
-				if ( is_string( $arg ) && '--path=' === substr( $arg, 0, 7 ) ) {
-					$args[] = $arg;
-				}
-			}
+		// Add global config values to preserve the environment after restart
+		$config = WP_CLI::get_runner()->config;
+		if ( isset( $config['path'] ) ) {
+			$args[] = '--path=' . $config['path'];
+		}
+		if ( isset( $config['user'] ) ) {
+			$args[] = '--user=' . $config['user'];
+		}
+		if ( isset( $config['url'] ) ) {
+			$args[] = '--url=' . $config['url'];
 		}
 
 		WP_CLI::log( 'Restarting shell in new process...' );
