@@ -100,6 +100,9 @@ class Shell_Command extends WP_CLI_Command {
 		if ( \Psy\Shell::class === $class ) {
 			$shell = new Psy\Shell();
 			$shell->run();
+		} elseif ( \Boris\Boris::class === $class ) {
+			$boris = new \Boris\Boris( 'wp> ' );
+			$boris->start();
 		} else {
 			/**
 			 * @var class-string<WP_CLI\Shell\REPL> $class
