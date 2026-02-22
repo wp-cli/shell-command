@@ -10,7 +10,7 @@ Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contr
 ## Using
 
 ~~~
-wp shell [--basic]
+wp shell [--basic] [--hook=<hook>]
 ~~~
 
 `wp shell` allows you to evaluate PHP statements and expressions
@@ -25,12 +25,23 @@ that you can use within a WordPress plugin, for example.
 		Force the use of WP-CLI's built-in PHP REPL, even if the Boris or
 		PsySH PHP REPLs are available.
 
+	[--hook=<hook>]
+		Ensure that a specific WordPress action hook has fired before starting the shell.
+		This validates that the preconditions associated with that hook are met.
+		Only hooks that have already been triggered can be used (e.g., init, plugins_loaded, wp_loaded).
+		---
+		default: ''
+		---
+
 **EXAMPLES**
 
     # Call get_bloginfo() to get the name of the site.
     $ wp shell
     wp> get_bloginfo( 'name' );
     => string(6) "WP-CLI"
+
+    # Start a shell, ensuring the 'init' hook has already fired.
+    $ wp shell --hook=init
 
 ## Installing
 
