@@ -60,7 +60,6 @@ class Shell_Command extends WP_CLI_Command {
 	 *
 	 * @param string[] $_ Positional arguments. Unused.
 	 * @param array{basic?: bool, watch?: string} $assoc_args Associative arguments.
-
 	 */
 	public function __invoke( $_, $assoc_args ) {
 		$watch_path = Utils\get_flag_value( $assoc_args, 'watch', false );
@@ -99,9 +98,16 @@ class Shell_Command extends WP_CLI_Command {
 	/**
 	 * Start the shell REPL.
 	 *
-	 * @param array<string,bool|string> $assoc_args Associative arguments.
+	 * @param array{basic?: bool, watch?: string} $assoc_args Associative arguments.
 	 */
 	private function start_shell( $assoc_args ) {
+		$watch_path = Utils\get_flag_value( $assoc_args, 'watch', '' );
+
+		if ( $watch_path && ! Utils\get_flag_value( $assoc_args, 'basic' ) ) {
+			WP_CLI::warning( 'The --watch option only works with the built-in REPL. Enabling --basic mode.' );
+			$assoc_args['basic'] = true;
+		}
+
 		$class = WP_CLI\Shell\REPL::class;
 
 		$implementations = array(
@@ -178,6 +184,11 @@ class Shell_Command extends WP_CLI_Command {
 	 * @param array{basic?: bool, watch?: string} $assoc_args Command arguments to preserve.
 	 */
 	private function restart_process( $assoc_args ) {
+		/**
+		 * @var array{0?: string} $argv
+		 */
+		global $argv;
+
 		// Check if pcntl_exec is available
 		if ( ! function_exists( 'pcntl_exec' ) ) {
 			WP_CLI::debug( 'pcntl_exec not available, falling back to in-process restart', 'shell' );
@@ -187,10 +198,14 @@ class Shell_Command extends WP_CLI_Command {
 		// Build the command to restart wp shell with the same arguments
 		$php_binary = Utils\get_php_binary();
 
+		/**
+		 * @var array{argv: array{0?: string}} $_SERVER
+		 */
+
 		// Get the WP-CLI script path
 		$wp_cli_script = null;
-		if ( isset( $GLOBALS['argv'][0] ) ) {
-			$wp_cli_script = $GLOBALS['argv'][0];
+		if ( isset( $argv[0] ) ) {
+			$wp_cli_script = $argv[0];
 		} elseif ( isset( $_SERVER['argv'][0] ) ) {
 			$wp_cli_script = $_SERVER['argv'][0];
 		}
