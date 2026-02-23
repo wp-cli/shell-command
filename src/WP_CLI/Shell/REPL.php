@@ -88,25 +88,25 @@ class REPL {
 
 			$fp = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
 
-			$__repl_input_line = $fp ? fgets( $fp ) : '';
+			$line = $fp ? fgets( $fp ) : '';
 
 			if ( $fp ) {
 				pclose( $fp );
 			}
 
-			if ( ! $__repl_input_line ) {
+			if ( ! $line ) {
 				break;
 			}
 
-			$__repl_input_line = rtrim( $__repl_input_line, "\n" );
+			$line = rtrim( $line, "\n" );
 
-			if ( $__repl_input_line && '\\' === $__repl_input_line[ strlen( $__repl_input_line ) - 1 ] ) {
-				$__repl_input_line = substr( $__repl_input_line, 0, -1 );
+			if ( $line && '\\' === $line[ strlen( $line ) - 1 ] ) {
+				$line = substr( $line, 0, -1 );
 			} else {
 				$done = true;
 			}
 
-			$full_line .= $__repl_input_line;
+			$full_line .= $line;
 
 		} while ( ! $done );
 
