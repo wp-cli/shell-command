@@ -10,6 +10,7 @@ class REPL {
 
 	private $history_file;
 
+	/** @var bool Whether to suppress automatic output. */
 	private $quiet;
 
 	/**
