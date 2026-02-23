@@ -150,7 +150,7 @@ class REPL {
 		$this->history_file = \WP_CLI\Utils\get_temp_dir() . 'wp-cli-history-' . md5( $data );
 	}
 
-	private static function starts_with( $tokens, $__repl_input_line ) {
-		return preg_match( "/^($tokens)[\(\s]+/", $__repl_input_line );
+	private static function starts_with( $tokens, $line ) {
+		return preg_match( "/^($tokens)[\(\s]+/", $line );
 	}
 }
