@@ -57,6 +57,7 @@ class REPL {
 				if ( 0 < strlen( $out ) ) {
 					echo rtrim( $out, "\n" ) . "\n";
 				}
+				ob_start();
 				if ( ! $this->quiet ) {
 					echo '=> ';
 					var_dump( $evl );
