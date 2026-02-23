@@ -12,6 +12,10 @@ class REPL {
 
 	private $quiet;
 
+	/**
+	 * @param string $prompt Prompt to display.
+	 * @param bool   $quiet  Whether to suppress automatic output.
+	 */
 	public function __construct( $prompt, $quiet = false ) {
 		$this->prompt = $prompt;
 		$this->quiet  = $quiet;
