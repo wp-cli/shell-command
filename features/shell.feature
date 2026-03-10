@@ -61,6 +61,38 @@ Feature: WordPress REPL
       """
     And STDERR should be empty
 
+  Scenario: Use SHELL environment variable as fallback for bash
+    Given a WP install
+
+    And a session file:
+      """
+      return true;
+      """
+
+    # SHELL pointing to bash should work (when bash is available).
+    When I try `SHELL=/bin/bash wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      bool(true)
+      """
+    And STDERR should be empty
+
+    # SHELL pointing to non-bash binary should be ignored and fall back to /bin/bash.
+    When I try `SHELL=/bin/sh wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      bool(true)
+      """
+    And STDERR should be empty
+
+    # SHELL pointing to invalid path should be ignored and fall back to /bin/bash.
+    When I try `SHELL=/nonsense/path wp shell --basic < session`
+    Then STDOUT should contain:
+      """
+      bool(true)
+      """
+    And STDERR should be empty
+
   Scenario: Input starting with dash
     Given a WP install
     And a session file:
