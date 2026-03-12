@@ -19,49 +19,49 @@ class REPL {
 	public function start() {
 		// @phpstan-ignore while.alwaysTrue
 		while ( true ) {
-			$line = $this->prompt();
+			$__repl_input_line = $this->prompt();
 
-			if ( '' === $line ) {
+			if ( '' === $__repl_input_line ) {
 				continue;
 			}
 
-			$line = rtrim( $line, ';' ) . ';';
+			$__repl_input_line = rtrim( $__repl_input_line, ';' ) . ';';
 
-			if ( self::starts_with( self::non_expressions(), $line ) ) {
+			if ( self::starts_with( self::non_expressions(), $__repl_input_line ) ) {
 				ob_start();
 				try {
 					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
-					eval( $line );
+					eval( $__repl_input_line );
 				} catch ( \Throwable $e ) {
 					// Display the error message but continue the session
 					fwrite( STDERR, get_class( $e ) . ': ' . $e->getMessage() . "\n" );
 				}
-				$out = (string) ob_get_clean();
-				if ( 0 < strlen( $out ) ) {
-					$out = rtrim( $out, "\n" ) . "\n";
+				$__repl_output = (string) ob_get_clean();
+				if ( 0 < strlen( $__repl_output ) ) {
+					$__repl_output = rtrim( $__repl_output, "\n" ) . "\n";
 				}
-				fwrite( STDOUT, $out );
+				fwrite( STDOUT, $__repl_output );
 			} else {
-				if ( ! self::starts_with( 'return', $line ) ) {
-					$line = 'return ' . $line;
+				if ( ! self::starts_with( 'return', $__repl_input_line ) ) {
+					$__repl_input_line = 'return ' . $__repl_input_line;
 				}
 
 				// Write directly to STDOUT, to sidestep any output buffers created by plugins
 				ob_start();
 				try {
 					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
-					$evl = eval( $line );
+					$__repl_eval_result = eval( $__repl_input_line );
 				} catch ( \Throwable $e ) {
 					// Display the error message but continue the session
 					fwrite( STDERR, get_class( $e ) . ': ' . $e->getMessage() . "\n" );
 					$evl = null;
 				}
-				$out = (string) ob_get_clean();
-				if ( 0 < strlen( $out ) ) {
-					echo rtrim( $out, "\n" ) . "\n";
+				$__repl_output      = (string) ob_get_clean();
+				if ( 0 < strlen( $__repl_output ) ) {
+					echo rtrim( $__repl_output, "\n" ) . "\n";
 				}
 				echo '=> ';
-				var_dump( $evl );
+				var_dump( $__repl_eval_result );
 				fwrite( STDOUT, (string) ob_get_clean() );
 			}
 		}
@@ -133,8 +133,15 @@ class REPL {
 		$history_path = escapeshellarg( $history_path );
 		if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
 			$shell_binary = (string) getenv( 'WP_CLI_CUSTOM_SHELL' );
-		} else {
+		} elseif ( is_file( '/bin/bash' ) && is_readable( '/bin/bash' ) ) {
+			// Prefer /bin/bash when available since we use bash-specific commands.
 			$shell_binary = '/bin/bash';
+		} elseif ( getenv( 'SHELL' ) && self::is_bash_shell( (string) getenv( 'SHELL' ) ) ) {
+			// Only use SHELL as fallback if it's bash (we use bash-specific commands).
+			$shell_binary = (string) getenv( 'SHELL' );
+		} else {
+			// Final fallback for systems without /bin/bash.
+			$shell_binary = 'bash';
 		}
 
 		if ( ! is_file( $shell_binary ) || ! is_readable( $shell_binary ) ) {
@@ -153,6 +160,21 @@ class REPL {
 			. 'echo $LINE; ';
 
 		return "{$shell_binary} -c " . escapeshellarg( $cmd );
+	}
+
+	/**
+	 * Check if a shell binary is bash or bash-compatible.
+	 *
+	 * @param string $shell_path Path to the shell binary.
+	 * @return bool True if the shell is bash, false otherwise.
+	 */
+	private static function is_bash_shell( $shell_path ) {
+		if ( ! is_file( $shell_path ) || ! is_readable( $shell_path ) ) {
+			return false;
+		}
+		// Check if the basename is exactly 'bash' or starts with 'bash' followed by a version/variant.
+		$basename = basename( $shell_path );
+		return 'bash' === $basename || 0 === strpos( $basename, 'bash-' );
 	}
 
 	private function set_history_file() {
