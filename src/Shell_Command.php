@@ -36,6 +36,11 @@ class Shell_Command extends WP_CLI_Command {
 	 *
 	 *     # Start a shell, ensuring the 'init' hook has already fired.
 	 *     $ wp shell --hook=init
+	 *
+	 *     # Start a shell in quiet mode, suppressing return value output.
+	 *     $ wp shell --quiet
+	 *     wp> $a = "hello";
+	 *     wp>
 	 */
 	public function __invoke( $_, $assoc_args ) {
 		$hook = Utils\get_flag_value( $assoc_args, 'hook', '' );
@@ -71,6 +76,7 @@ class Shell_Command extends WP_CLI_Command {
 	 */
 	private function start_shell( $assoc_args ) {
 		$class = WP_CLI\Shell\REPL::class;
+		$quiet = (bool) WP_CLI::get_config( 'quiet' );
 
 		$implementations = array(
 			\Psy\Shell::class,
@@ -94,11 +100,14 @@ class Shell_Command extends WP_CLI_Command {
 		if ( \Psy\Shell::class === $class ) {
 			$shell = new Psy\Shell();
 			$shell->run();
+		} elseif ( \Boris\Boris::class === $class ) {
+			$boris = new \Boris\Boris( 'wp> ' );
+			$boris->start();
 		} else {
 			/**
 			 * @var class-string<WP_CLI\Shell\REPL> $class
 			 */
-			$repl = new $class( 'wp> ' );
+			$repl = new $class( 'wp> ', $quiet );
 			$repl->start();
 		}
 	}

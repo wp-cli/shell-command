@@ -10,8 +10,16 @@ class REPL {
 
 	private $history_file;
 
-	public function __construct( $prompt ) {
+	/** @var bool Whether to suppress automatic output. */
+	private $quiet;
+
+	/**
+	 * @param string $prompt Prompt to display.
+	 * @param bool   $quiet  Whether to suppress automatic output.
+	 */
+	public function __construct( $prompt, $quiet = false ) {
 		$this->prompt = $prompt;
+		$this->quiet  = $quiet;
 
 		$this->set_history_file();
 	}
@@ -49,8 +57,11 @@ class REPL {
 				if ( 0 < strlen( $__repl_output ) ) {
 					echo rtrim( $__repl_output, "\n" ) . "\n";
 				}
-				echo '=> ';
-				var_dump( $__repl_eval_result );
+				ob_start();
+				if ( ! $this->quiet ) {
+					echo '=> ';
+					var_dump( $__repl_eval_result );
+				}
 				fwrite( STDOUT, (string) ob_get_clean() );
 			}
 		}
