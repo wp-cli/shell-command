@@ -156,7 +156,7 @@ class REPL {
 				. '[ $? -eq 0 ] || exit; '
 				. 'history -s -- "$LINE"; '
 				. "history -w {$history_path}; "
-				. 'echo $LINE; ';
+				. 'printf \'%s\n\' "$LINE"; ';
 		}
 
 		return "{$shell_binary} -c " . escapeshellarg( $cmd );
