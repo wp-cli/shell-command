@@ -125,8 +125,8 @@ class REPL {
 		} elseif ( is_file( '/bin/bash' ) && is_readable( '/bin/bash' ) ) {
 			// Prefer /bin/bash when available since we use bash-specific commands.
 			$shell_binary = '/bin/bash';
-		} elseif ( getenv( 'SHELL' ) && self::is_bash_shell( (string) getenv( 'SHELL' ) ) ) {
-			// Only use SHELL as fallback if it's bash (we use bash-specific commands).
+		} elseif ( getenv( 'SHELL' ) && self::is_supported_shell( (string) getenv( 'SHELL' ) ) ) {
+			// Use SHELL as fallback if it's a supported shell (bash or ksh).
 			$shell_binary = (string) getenv( 'SHELL' );
 		} else {
 			// Final fallback for systems without /bin/bash.
@@ -137,16 +137,27 @@ class REPL {
 			WP_CLI::error( "The shell binary '{$shell_binary}' is not valid. You can override the shell to be used through the WP_CLI_CUSTOM_SHELL environment variable." );
 		}
 
+		$is_ksh       = self::is_ksh_shell( $shell_binary );
 		$shell_binary = escapeshellarg( $shell_binary );
 
-		$cmd = 'set -f; '
-			. "history -r {$history_path}; "
-			. 'LINE=""; '
-			. "read -re -p {$prompt} LINE; "
-			. '[ $? -eq 0 ] || exit; '
-			. 'history -s -- "$LINE"; '
-			. "history -w {$history_path}; "
-			. 'echo $LINE; ';
+		if ( $is_ksh ) {
+			// ksh does not support bash-specific history commands or `read -e`/`read -p`.
+			// Use POSIX-compatible read and print the prompt via printf to stderr.
+			$cmd = 'set -f; '
+				. 'LINE=""; '
+				. "printf %s {$prompt} >&2; "
+				. 'IFS= read -r LINE || exit; '
+				. 'printf \'%s\n\' "$LINE"; ';
+		} else {
+			$cmd = 'set -f; '
+				. "history -r {$history_path}; "
+				. 'LINE=""; '
+				. "read -re -p {$prompt} LINE; "
+				. '[ $? -eq 0 ] || exit; '
+				. 'history -s -- "$LINE"; '
+				. "history -w {$history_path}; "
+				. 'echo $LINE; ';
+		}
 
 		return "{$shell_binary} -c " . escapeshellarg( $cmd );
 	}
@@ -164,6 +175,33 @@ class REPL {
 		// Check if the basename is exactly 'bash' or starts with 'bash' followed by a version/variant.
 		$basename = basename( $shell_path );
 		return 'bash' === $basename || 0 === strpos( $basename, 'bash-' );
+	}
+
+	/**
+	 * Check if a shell binary is ksh or a ksh-compatible shell (mksh, pdksh, ksh93, etc.).
+	 *
+	 * @param string $shell_path Path to the shell binary.
+	 * @return bool True if the shell is ksh-compatible, false otherwise.
+	 */
+	private static function is_ksh_shell( $shell_path ) {
+		if ( ! is_file( $shell_path ) || ! is_readable( $shell_path ) ) {
+			return false;
+		}
+		$basename = basename( $shell_path );
+		// Matches ksh, ksh93, ksh88, mksh, pdksh, etc.
+		return 0 === strpos( $basename, 'ksh' )
+			|| 'mksh' === $basename
+			|| 'pdksh' === $basename;
+	}
+
+	/**
+	 * Check if a shell binary is supported (bash or ksh-compatible).
+	 *
+	 * @param string $shell_path Path to the shell binary.
+	 * @return bool True if the shell is supported, false otherwise.
+	 */
+	private static function is_supported_shell( $shell_path ) {
+		return self::is_bash_shell( $shell_path ) || self::is_ksh_shell( $shell_path );
 	}
 
 	private function set_history_file() {
