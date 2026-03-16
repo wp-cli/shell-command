@@ -54,9 +54,9 @@ class REPL {
 				} catch ( \Throwable $e ) {
 					// Display the error message but continue the session
 					fwrite( STDERR, get_class( $e ) . ': ' . $e->getMessage() . "\n" );
-					$evl = null;
+					$__repl_eval_result = null;
 				}
-				$__repl_output      = (string) ob_get_clean();
+				$__repl_output = (string) ob_get_clean();
 				if ( 0 < strlen( $__repl_output ) ) {
 					echo rtrim( $__repl_output, "\n" ) . "\n";
 				}
