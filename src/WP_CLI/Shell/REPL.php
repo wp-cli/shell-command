@@ -49,13 +49,14 @@ class REPL {
 			if ( 'exit' === trim( $__repl_input_line ) ) {
 				return 0;
 			}
-			$__repl_input_line = rtrim( $__repl_input_line, ';' ) . ';';
 
 			// Check for special restart command
 			if ( 'restart' === trim( $__repl_input_line ) ) {
 				WP_CLI::log( 'Restarting shell...' );
 				return self::EXIT_CODE_RESTART;
 			}
+
+			$__repl_input_line = rtrim( $__repl_input_line, ';' ) . ';';
 
 			if ( self::starts_with( self::non_expressions(), $__repl_input_line ) ) {
 				ob_start();
