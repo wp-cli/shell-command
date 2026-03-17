@@ -10,7 +10,7 @@ Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contr
 ## Using
 
 ~~~
-wp shell [--basic] [--hook=<hook>]
+wp shell [--basic] [--watch=<path>] [--hook=<hook>]
 ~~~
 
 `wp shell` allows you to evaluate PHP statements and expressions
@@ -19,11 +19,20 @@ hit enter, and see the code execute right before you. Because WordPress
 is loaded, you have access to all the functions, classes and globals
 that you can use within a WordPress plugin, for example.
 
+The `restart` command reloads the shell by spawning a new PHP process,
+allowing modified code to be fully reloaded. Note that this requires
+the `pcntl_exec()` function. If not available, the shell restarts
+in-process, which resets variables but doesn't reload PHP files.
+
 **OPTIONS**
 
 	[--basic]
 		Force the use of WP-CLI's built-in PHP REPL, even if the Boris or
 		PsySH PHP REPLs are available.
+
+	[--watch=<path>]
+		Watch a file or directory for changes and automatically restart the shell.
+		Only works with the built-in REPL (--basic).
 
 	[--hook=<hook>]
 		Ensure that a specific WordPress action hook has fired before starting the shell.
@@ -39,6 +48,18 @@ that you can use within a WordPress plugin, for example.
     $ wp shell
     wp> get_bloginfo( 'name' );
     => string(6) "WP-CLI"
+
+    # Restart the shell to reload code changes.
+    $ wp shell
+    wp> restart
+    Restarting shell in new process...
+    wp>
+
+    # Watch a directory for changes and auto-restart.
+    $ wp shell --watch=wp-content/plugins/my-plugin
+    wp> // Make changes to files in the plugin directory
+    Detected changes in wp-content/plugins/my-plugin, restarting shell...
+    wp>
 
     # Start a shell, ensuring the 'init' hook has already fired.
     $ wp shell --hook=init
