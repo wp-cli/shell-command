@@ -30,8 +30,8 @@ class REPL {
 			if ( self::starts_with( self::non_expressions(), $__repl_input_line ) ) {
 				ob_start();
 				try {
-					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
-					eval( $__repl_input_line );
+					// phpcs:ignore Squiz.PHP.Eval.Discouraged,WordPress.PHP.NoSilencedErrors.Discouraged -- This is meant to be a REPL, no way to avoid eval. Suppress PHP warnings to show clean error messages.
+					@eval( $__repl_input_line );
 				} catch ( \Throwable $e ) {
 					// Display the error message but continue the session
 					fwrite( STDERR, get_class( $e ) . ': ' . $e->getMessage() . "\n" );
@@ -49,8 +49,8 @@ class REPL {
 				// Write directly to STDOUT, to sidestep any output buffers created by plugins
 				ob_start();
 				try {
-					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
-					$__repl_eval_result = eval( $__repl_input_line );
+					// phpcs:ignore Squiz.PHP.Eval.Discouraged,WordPress.PHP.NoSilencedErrors.Discouraged -- This is meant to be a REPL, no way to avoid eval. Suppress PHP warnings to show clean error messages.
+					$__repl_eval_result = @eval( $__repl_input_line );
 				} catch ( \Throwable $e ) {
 					// Display the error message but continue the session
 					fwrite( STDERR, get_class( $e ) . ': ' . $e->getMessage() . "\n" );
