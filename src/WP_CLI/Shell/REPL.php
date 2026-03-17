@@ -10,19 +10,50 @@ class REPL {
 
 	private $history_file;
 
+	private $watch_path;
+
+	private $watch_mtime;
+
+	const EXIT_CODE_RESTART = 10;
+
 	public function __construct( $prompt ) {
 		$this->prompt = $prompt;
 
 		$this->set_history_file();
 	}
 
+	/**
+	 * Set a path to watch for changes.
+	 *
+	 * @param string $path Path to watch for changes.
+	 */
+	public function set_watch_path( $path ) {
+		$this->watch_path  = $path;
+		$this->watch_mtime = $this->get_recursive_mtime( $path );
+	}
+
 	public function start() {
-		// @phpstan-ignore while.alwaysTrue
 		while ( true ) {
+			// Check for file changes if watching
+			if ( $this->watch_path && $this->has_changes() ) {
+				WP_CLI::log( "Detected changes in {$this->watch_path}, restarting shell..." );
+				return self::EXIT_CODE_RESTART;
+			}
 			$__repl_input_line = $this->prompt();
 
 			if ( '' === $__repl_input_line ) {
 				continue;
+			}
+
+			// Check for special exit command
+			if ( 'exit' === trim( $__repl_input_line ) ) {
+				return 0;
+			}
+
+			// Check for special restart command
+			if ( 'restart' === trim( $__repl_input_line ) ) {
+				WP_CLI::log( 'Restarting shell...' );
+				return self::EXIT_CODE_RESTART;
 			}
 
 			$__repl_input_line = rtrim( $__repl_input_line, ';' ) . ';';
@@ -136,8 +167,8 @@ class REPL {
 		} elseif ( is_file( '/bin/bash' ) && is_readable( '/bin/bash' ) ) {
 			// Prefer /bin/bash when available since we use bash-specific commands.
 			$shell_binary = '/bin/bash';
-		} elseif ( getenv( 'SHELL' ) && self::is_bash_shell( (string) getenv( 'SHELL' ) ) ) {
-			// Only use SHELL as fallback if it's bash (we use bash-specific commands).
+		} elseif ( getenv( 'SHELL' ) && self::is_supported_shell( (string) getenv( 'SHELL' ) ) ) {
+			// Use SHELL as fallback if it's a supported shell (bash or ksh).
 			$shell_binary = (string) getenv( 'SHELL' );
 		} else {
 			// Final fallback for systems without /bin/bash.
@@ -148,16 +179,27 @@ class REPL {
 			WP_CLI::error( "The shell binary '{$shell_binary}' is not valid. You can override the shell to be used through the WP_CLI_CUSTOM_SHELL environment variable." );
 		}
 
+		$is_ksh       = self::is_ksh_shell( $shell_binary );
 		$shell_binary = escapeshellarg( $shell_binary );
 
-		$cmd = 'set -f; '
-			. "history -r {$history_path}; "
-			. 'LINE=""; '
-			. "read -re -p {$prompt} LINE; "
-			. '[ $? -eq 0 ] || exit; '
-			. 'history -s -- "$LINE"; '
-			. "history -w {$history_path}; "
-			. 'echo $LINE; ';
+		if ( $is_ksh ) {
+			// ksh does not support bash-specific history commands or `read -e`/`read -p`.
+			// Use POSIX-compatible read and print the prompt via printf to stderr.
+			$cmd = 'set -f; '
+				. 'LINE=""; '
+				. "printf %s {$prompt} >&2; "
+				. 'IFS= read -r LINE || exit; '
+				. 'printf \'%s\n\' "$LINE"; ';
+		} else {
+			$cmd = 'set -f; '
+				. "history -r {$history_path}; "
+				. 'LINE=""; '
+				. "read -re -p {$prompt} LINE; "
+				. '[ $? -eq 0 ] || exit; '
+				. 'history -s -- "$LINE"; '
+				. "history -w {$history_path}; "
+				. 'printf \'%s\n\' "$LINE"; ';
+		}
 
 		return "{$shell_binary} -c " . escapeshellarg( $cmd );
 	}
@@ -177,6 +219,33 @@ class REPL {
 		return 'bash' === $basename || 0 === strpos( $basename, 'bash-' );
 	}
 
+	/**
+	 * Check if a shell binary is ksh or a ksh-compatible shell (mksh, pdksh, ksh93, etc.).
+	 *
+	 * @param string $shell_path Path to the shell binary.
+	 * @return bool True if the shell is ksh-compatible, false otherwise.
+	 */
+	private static function is_ksh_shell( $shell_path ) {
+		if ( ! is_file( $shell_path ) || ! is_readable( $shell_path ) ) {
+			return false;
+		}
+		$basename = basename( $shell_path );
+		// Matches ksh, ksh93, ksh88, mksh, pdksh, etc.
+		return 0 === strpos( $basename, 'ksh' )
+			|| 'mksh' === $basename
+			|| 'pdksh' === $basename;
+	}
+
+	/**
+	 * Check if a shell binary is supported (bash or ksh-compatible).
+	 *
+	 * @param string $shell_path Path to the shell binary.
+	 * @return bool True if the shell is supported, false otherwise.
+	 */
+	private static function is_supported_shell( $shell_path ) {
+		return self::is_bash_shell( $shell_path ) || self::is_ksh_shell( $shell_path );
+	}
+
 	private function set_history_file() {
 		$data = getcwd() . get_current_user();
 
@@ -185,5 +254,65 @@ class REPL {
 
 	private static function starts_with( $tokens, $line ) {
 		return preg_match( "/^($tokens)[\(\s]+/", $line );
+	}
+
+	/**
+	 * Check if the watched path has changes.
+	 *
+	 * @return bool True if changes detected, false otherwise.
+	 */
+	private function has_changes() {
+		if ( ! $this->watch_path ) {
+			return false;
+		}
+
+		$current_mtime = $this->get_recursive_mtime( $this->watch_path );
+		return $current_mtime !== $this->watch_mtime;
+	}
+
+	/**
+	 * Get the most recent modification time for a path recursively.
+	 *
+	 * @param string $path Path to check.
+	 * @return int Most recent modification time.
+	 */
+	private function get_recursive_mtime( $path ) {
+		$mtime = 0;
+
+		if ( is_file( $path ) ) {
+			$file_mtime = filemtime( $path );
+			return false !== $file_mtime ? $file_mtime : 0;
+		}
+
+		if ( is_dir( $path ) ) {
+			$dir_mtime = filemtime( $path );
+			$mtime     = false !== $dir_mtime ? $dir_mtime : 0;
+
+			try {
+				$iterator = new \RecursiveIteratorIterator(
+					new \RecursiveDirectoryIterator( $path, \RecursiveDirectoryIterator::SKIP_DOTS ),
+					\RecursiveIteratorIterator::SELF_FIRST
+				);
+
+				foreach ( $iterator as $file ) {
+					/** @var \SplFileInfo $file */
+					$file_mtime = $file->getMTime();
+					if ( $file_mtime > $mtime ) {
+						$mtime = $file_mtime;
+					}
+				}
+			} catch ( \UnexpectedValueException $e ) {
+				// Handle unreadable directories/files gracefully.
+				WP_CLI::warning(
+					sprintf(
+						'Could not read path "%s" while checking for changes: %s',
+						$path,
+						$e->getMessage()
+					)
+				);
+			}
+		}
+
+		return $mtime;
 	}
 }
