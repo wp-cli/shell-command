@@ -163,7 +163,7 @@ Feature: WordPress REPL
       """
     And STDERR should contain:
       """
-      Error: Failed opening required 'nonexistent_file.txt'
+      Failed opening required 'nonexistent_file.txt'
       """
 
   Scenario: Exception handling for expression errors
