@@ -64,6 +64,11 @@ in-process, which resets variables but doesn't reload PHP files.
     # Start a shell, ensuring the 'init' hook has already fired.
     $ wp shell --hook=init
 
+    # Start a shell in quiet mode, suppressing return value output.
+    $ wp shell --quiet
+    wp> $a = "hello";
+    wp>
+
 ## Installing
 
 This package is included with WP-CLI itself, no additional installation necessary.
