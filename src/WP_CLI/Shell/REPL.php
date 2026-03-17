@@ -10,14 +10,22 @@ class REPL {
 
 	private $history_file;
 
+	/** @var bool Whether to suppress automatic output. */
+	private $quiet;
+
 	private $watch_path;
 
 	private $watch_mtime;
 
 	const EXIT_CODE_RESTART = 10;
 
-	public function __construct( $prompt ) {
+	/**
+	 * @param string $prompt Prompt to display.
+	 * @param bool   $quiet  Whether to suppress automatic output.
+	 */
+	public function __construct( $prompt, $quiet = false ) {
 		$this->prompt = $prompt;
+		$this->quiet  = $quiet;
 
 		$this->set_history_file();
 	}
@@ -96,8 +104,11 @@ class REPL {
 				if ( $__repl_eval_had_error ) {
 					continue;
 				}
-				echo '=> ';
-				var_dump( $__repl_eval_result );
+				ob_start();
+				if ( ! $this->quiet ) {
+					echo '=> ';
+					var_dump( $__repl_eval_result );
+				}
 				fwrite( STDOUT, (string) ob_get_clean() );
 			}
 		}
