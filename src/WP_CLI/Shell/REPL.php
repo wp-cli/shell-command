@@ -79,17 +79,22 @@ class REPL {
 
 				// Write directly to STDOUT, to sidestep any output buffers created by plugins
 				ob_start();
+				$__repl_eval_had_error = false;
 				try {
 					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- This is meant to be a REPL, no way to avoid eval.
 					$__repl_eval_result = eval( $__repl_input_line );
 				} catch ( \Throwable $e ) {
 					// Display the error message but continue the session
 					fwrite( STDERR, get_class( $e ) . ': ' . $e->getMessage() . "\n" );
-					$__repl_eval_result = null;
+					$__repl_eval_had_error = true;
+					$__repl_eval_result   = null;
 				}
 				$__repl_output = (string) ob_get_clean();
 				if ( 0 < strlen( $__repl_output ) ) {
 					echo rtrim( $__repl_output, "\n" ) . "\n";
+				}
+				if ( $__repl_eval_had_error ) {
+					continue;
 				}
 				echo '=> ';
 				var_dump( $__repl_eval_result );
