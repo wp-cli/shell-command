@@ -3,7 +3,7 @@ wp-cli/shell-command
 
 Opens an interactive PHP console for running and testing PHP code.
 
-[![Testing](https://github.com/wp-cli/shell-command/actions/workflows/testing.yml/badge.svg)](https://github.com/wp-cli/shell-command/actions/workflows/testing.yml)
+[![Testing](https://github.com/wp-cli/shell-command/actions/workflows/testing.yml/badge.svg)](https://github.com/wp-cli/shell-command/actions/workflows/testing.yml) [![Code Coverage](https://codecov.io/gh/wp-cli/shell-command/branch/main/graph/badge.svg)](https://codecov.io/gh/wp-cli/shell-command/tree/main)
 
 Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contributing) | [Support](#support)
 
