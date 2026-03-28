@@ -176,10 +176,12 @@ class REPL {
 	}
 
 	private static function create_prompt_cmd( $prompt, $history_path ) {
-		$prompt       = escapeshellarg( $prompt );
-		$history_path = escapeshellarg( $history_path );
+		$is_windows = \WP_CLI\Utils\is_windows();
+
 		if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
 			$shell_binary = (string) getenv( 'WP_CLI_CUSTOM_SHELL' );
+		} elseif ( $is_windows ) {
+			$shell_binary = 'powershell.exe';
 		} elseif ( is_file( '/bin/bash' ) && is_readable( '/bin/bash' ) ) {
 			// Prefer /bin/bash when available since we use bash-specific commands.
 			$shell_binary = '/bin/bash';
@@ -191,9 +193,18 @@ class REPL {
 			$shell_binary = 'bash';
 		}
 
-		if ( ! is_file( $shell_binary ) || ! is_readable( $shell_binary ) ) {
-			WP_CLI::error( "The shell binary '{$shell_binary}' is not valid. You can override the shell to be used through the WP_CLI_CUSTOM_SHELL environment variable." );
+		$is_powershell = $is_windows && 'powershell.exe' === $shell_binary;
+
+		if ( $is_powershell ) {
+			// PowerShell uses ` (backtick) for escaping but for strings single quotes are literal.
+			// If prompt contains single quotes, we double them in PowerShell.
+			$prompt_for_ps = str_replace( "'", "''", $prompt );
+			$cmd = "\$line = Read-Host -Prompt '{$prompt_for_ps}'; Write-Output \$line;";
+			return "powershell.exe -NoProfile -Command \"{$cmd}\"";
 		}
+
+		$prompt       = escapeshellarg( $prompt );
+		$history_path = escapeshellarg( $history_path );
 
 		$is_ksh       = self::is_ksh_shell( $shell_binary );
 		$shell_binary = escapeshellarg( $shell_binary );
