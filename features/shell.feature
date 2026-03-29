@@ -3,8 +3,12 @@ Feature: WordPress REPL
   Scenario: Blank session
     Given a WP install
 
-    When I run `wp shell < /dev/null`
-    And I run `wp shell --basic < /dev/null`
+    And an empty_session file:
+      """
+      """
+
+    When I run `wp shell < empty_session`
+    And I run `wp shell --basic < empty_session`
     Then STDOUT should be empty
 
   Scenario: Persistent environment
@@ -252,7 +256,11 @@ Feature: WordPress REPL
   Scenario: Shell with hook parameter for hook that hasn't fired
     Given a WP install
 
-    When I try `wp shell --basic --hook=shutdown < /dev/null`
+    And an empty_session file:
+      """
+      """
+
+    When I try `wp shell --basic --hook=shutdown < empty_session`
     Then STDERR should contain:
       """
       Error: The 'shutdown' hook has not fired yet
