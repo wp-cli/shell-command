@@ -203,6 +203,10 @@ class REPL {
 			return "powershell.exe -NoProfile -Command \"{$cmd}\"";
 		}
 
+		if ( ! is_file( $shell_binary ) || ! is_readable( $shell_binary ) ) {
+			WP_CLI::error( "The shell binary '{$shell_binary}' is not valid. You can override the shell to be used through the WP_CLI_CUSTOM_SHELL environment variable." );
+		}
+
 		$prompt       = escapeshellarg( $prompt );
 		$history_path = escapeshellarg( $history_path );
 
