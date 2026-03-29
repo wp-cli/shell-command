@@ -198,9 +198,10 @@ class REPL {
 		if ( $is_powershell ) {
 			// PowerShell uses ` (backtick) for escaping but for strings single quotes are literal.
 			// If prompt contains single quotes, we double them in PowerShell.
-			$prompt_for_ps = str_replace( "'", "''", $prompt );
-			$cmd           = "\$line = Read-Host -Prompt '{$prompt_for_ps}'; Write-Output \$line;";
-			return "powershell.exe -NoProfile -Command \"{$cmd}\"";
+			$prompt_for_ps       = str_replace( "'", "''", $prompt );
+			$history_path_for_ps = str_replace( "'", "''", $history_path );
+			$cmd                 = "\$line = Read-Host -Prompt '{$prompt_for_ps}'; if ( \$line ) { Add-Content -Path '{$history_path_for_ps}' -Value \$line; } Write-Output \$line;";
+			return "powershell.exe -Command \"{$cmd}\"";
 		}
 
 		if ( ! is_file( $shell_binary ) || ! is_readable( $shell_binary ) ) {
