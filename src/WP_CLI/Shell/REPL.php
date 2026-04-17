@@ -144,19 +144,24 @@ class REPL {
 			// @phpstan-ignore booleanNot.alwaysTrue
 			$prompt = ( ! $done && false !== $full_line ) ? '--> ' : $this->prompt;
 
-			$fp = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
-
-			$line = $fp ? fgets( $fp ) : '';
-
-			if ( $fp ) {
-				pclose( $fp );
+			if ( ! self::is_tty() ) {
+				if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
+					self::create_prompt_cmd( $prompt, $this->history_file );
+				}
+				$line = fgets( STDIN );
+			} else {
+				$fp   = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
+				$line = $fp ? fgets( $fp ) : '';
+				if ( $fp ) {
+					pclose( $fp );
+				}
 			}
 
 			if ( ! $line ) {
 				break;
 			}
 
-			$line = rtrim( $line, "\n" );
+			$line = rtrim( $line, "\r\n" );
 
 			if ( $line && '\\' === $line[ strlen( $line ) - 1 ] ) {
 				$line = substr( $line, 0, -1 );
@@ -346,5 +351,20 @@ class REPL {
 		}
 
 		return $mtime;
+	}
+
+	/**
+	 * Detect if STDIN is an interactive terminal.
+	 *
+	 * @return bool True if interactive, false otherwise.
+	 */
+	private static function is_tty() {
+		if ( function_exists( 'stream_isatty' ) ) {
+			return stream_isatty( STDIN );
+		}
+		if ( function_exists( 'posix_isatty' ) ) {
+			return posix_isatty( STDIN );
+		}
+		return true;
 	}
 }
