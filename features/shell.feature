@@ -43,6 +43,7 @@ Feature: WordPress REPL
       bool(true)
       """
 
+  @skip-windows
   Scenario: Use custom shell path
     Given a WP install
 

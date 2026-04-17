@@ -145,9 +145,6 @@ class REPL {
 			$prompt = ( ! $done && false !== $full_line ) ? '--> ' : $this->prompt;
 
 			if ( \WP_CLI\Utils\is_windows() && ! self::is_tty() ) {
-				if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
-					self::create_prompt_cmd( $prompt, $this->history_file );
-				}
 				$line = fgets( STDIN );
 			} else {
 				$fp   = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
