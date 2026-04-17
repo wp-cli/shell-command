@@ -51,7 +51,7 @@ Feature: WordPress REPL
       return true;
       """
 
-    When I try `WP_CLI_CUSTOM_SHELL=/nonsense/path wp shell --basic < session`
+    When I try `MSYS_NO_PATHCONV=1 WP_CLI_CUSTOM_SHELL=/nonsense/path wp shell --basic < session`
     Then STDOUT should be empty
     And STDERR should contain:
       """

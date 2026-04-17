@@ -144,7 +144,7 @@ class REPL {
 			// @phpstan-ignore booleanNot.alwaysTrue
 			$prompt = ( ! $done && false !== $full_line ) ? '--> ' : $this->prompt;
 
-			if ( ! self::is_tty() ) {
+			if ( \WP_CLI\Utils\is_windows() && ! self::is_tty() ) {
 				if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
 					self::create_prompt_cmd( $prompt, $this->history_file );
 				}
