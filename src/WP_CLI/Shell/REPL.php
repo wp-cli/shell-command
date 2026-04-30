@@ -195,7 +195,8 @@ class REPL {
 			$shell_binary = 'bash';
 		}
 
-		$is_powershell = $is_windows && 'powershell.exe' === $shell_binary;
+		$shell_basename = strtolower( basename( $shell_binary ) );
+		$is_powershell  = $is_windows && in_array( $shell_basename, array( 'powershell.exe', 'pwsh.exe' ), true );
 
 		if ( $is_powershell ) {
 			// PowerShell uses ` (backtick) for escaping but for strings single quotes are literal.
@@ -203,7 +204,8 @@ class REPL {
 			$prompt_for_ps       = str_replace( "'", "''", $prompt );
 			$history_path_for_ps = str_replace( "'", "''", $history_path );
 			$cmd                 = "\$line = Read-Host -Prompt '{$prompt_for_ps}'; if ( \$line ) { Add-Content -Path '{$history_path_for_ps}' -Value \$line; } Write-Output \$line;";
-			return "powershell.exe -Command \"{$cmd}\"";
+			$shell_quoted        = escapeshellarg( $shell_binary );
+			return "{$shell_quoted} -Command \"{$cmd}\"";
 		}
 
 		if ( ! is_file( $shell_binary ) || ! is_readable( $shell_binary ) ) {
