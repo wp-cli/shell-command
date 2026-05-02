@@ -144,19 +144,21 @@ class REPL {
 			// @phpstan-ignore booleanNot.alwaysTrue
 			$prompt = ( ! $done && false !== $full_line ) ? '--> ' : $this->prompt;
 
-			$fp = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
-
-			$line = $fp ? fgets( $fp ) : '';
-
-			if ( $fp ) {
-				pclose( $fp );
+			if ( \WP_CLI\Utils\is_windows() && ! self::is_tty() ) {
+				$line = fgets( STDIN );
+			} else {
+				$fp   = popen( self::create_prompt_cmd( $prompt, $this->history_file ), 'r' );
+				$line = $fp ? fgets( $fp ) : '';
+				if ( $fp ) {
+					pclose( $fp );
+				}
 			}
 
 			if ( ! $line ) {
 				break;
 			}
 
-			$line = rtrim( $line, "\n" );
+			$line = rtrim( $line, "\r\n" );
 
 			if ( $line && '\\' === $line[ strlen( $line ) - 1 ] ) {
 				$line = substr( $line, 0, -1 );
@@ -176,10 +178,12 @@ class REPL {
 	}
 
 	private static function create_prompt_cmd( $prompt, $history_path ) {
-		$prompt       = escapeshellarg( $prompt );
-		$history_path = escapeshellarg( $history_path );
+		$is_windows = \WP_CLI\Utils\is_windows();
+
 		if ( getenv( 'WP_CLI_CUSTOM_SHELL' ) ) {
 			$shell_binary = (string) getenv( 'WP_CLI_CUSTOM_SHELL' );
+		} elseif ( $is_windows ) {
+			$shell_binary = 'powershell.exe';
 		} elseif ( is_file( '/bin/bash' ) && is_readable( '/bin/bash' ) ) {
 			// Prefer /bin/bash when available since we use bash-specific commands.
 			$shell_binary = '/bin/bash';
@@ -191,9 +195,25 @@ class REPL {
 			$shell_binary = 'bash';
 		}
 
+		$shell_basename = strtolower( basename( $shell_binary ) );
+		$is_powershell  = $is_windows && in_array( $shell_basename, array( 'powershell.exe', 'pwsh.exe' ), true );
+
+		if ( $is_powershell ) {
+			// PowerShell uses ` (backtick) for escaping but for strings single quotes are literal.
+			// If prompt contains single quotes, we double them in PowerShell.
+			$prompt_for_ps       = str_replace( "'", "''", $prompt );
+			$history_path_for_ps = str_replace( "'", "''", $history_path );
+			$cmd                 = "\$line = Read-Host -Prompt '{$prompt_for_ps}'; if ( \$line ) { Add-Content -Path '{$history_path_for_ps}' -Value \$line; } Write-Output \$line;";
+			$shell_quoted        = escapeshellarg( $shell_binary );
+			return "{$shell_quoted} -Command \"{$cmd}\"";
+		}
+
 		if ( ! is_file( $shell_binary ) || ! is_readable( $shell_binary ) ) {
 			WP_CLI::error( "The shell binary '{$shell_binary}' is not valid. You can override the shell to be used through the WP_CLI_CUSTOM_SHELL environment variable." );
 		}
+
+		$prompt       = escapeshellarg( $prompt );
+		$history_path = escapeshellarg( $history_path );
 
 		$is_ksh       = self::is_ksh_shell( $shell_binary );
 		$shell_binary = escapeshellarg( $shell_binary );
@@ -330,5 +350,20 @@ class REPL {
 		}
 
 		return $mtime;
+	}
+
+	/**
+	 * Detect if STDIN is an interactive terminal.
+	 *
+	 * @return bool True if interactive, false otherwise.
+	 */
+	private static function is_tty() {
+		if ( function_exists( 'stream_isatty' ) ) {
+			return stream_isatty( STDIN );
+		}
+		if ( function_exists( 'posix_isatty' ) ) {
+			return posix_isatty( STDIN );
+		}
+		return true;
 	}
 }
